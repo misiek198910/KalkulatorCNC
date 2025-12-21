@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activities.ActivitySettings"
+    android:background="@drawable/background"
+    android:id="@+id/main">
+
+    <FrameLayout
+        android:id="@+id/adContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/mainLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/adContainer">
+
+        <TextView
+            android:id="@+id/textView"
+            style="@style/textView_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/dark_gray_transparent"
+            android:text="@string/calc_system"
+            android:textColor="@color/white"
+            android:textSize="@dimen/medium"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            tools:layout_editor_absoluteX="5dp" />
+
+        <Spinner
+            android:id="@+id/spinner1"
+            style="@style/spinner_style"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:drawSelectorOnTop="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <TextView
+            android:id="@+id/textView2"
+            style="@style/textView_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/dark_gray_transparent"
+            android:text="@string/language"
+            android:textColor="@color/white"
+            android:textSize="@dimen/medium"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            tools:layout_editor_absoluteX="5dp" />
+
+        <Spinner
+            android:id="@+id/spinner2"
+            style="@style/spinner_style"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:drawSelectorOnTop="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView" />
+
+        <LinearLayout
+            android:id="@+id/buttonsLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinner1">
+
+            <Button
+                android:id="@+id/button1"
+                style="@style/button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_style"
+                android:onClick="settings_button1_Clicked"
+                android:text="@string/settings_button1"
+                android:textSize="@dimen/medium"
+                tools:ignore="contentDescription" />
+
+            <Button
+                android:id="@+id/button2"
+                style="@style/button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_style"
+                android:onClick="settings_button2_Clicked"
+                android:text="@string/settings_button2"
+                android:textSize="@dimen/medium"
+                tools:ignore="contentDescription" />
+
+            <Button
+                android:id="@+id/button3"
+                style="@style/button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_style"
+                android:onClick="settings_button3_Clicked"
+                android:text="@string/settings_button3"
+                android:textSize="@dimen/medium"
+                tools:ignore="contentDescription" />
+
+            <Button
+                android:id="@+id/button4"
+                style="@style/button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_style"
+                android:onClick="settings_button4_Clicked"
+                android:text="@string/settings_button4"
+                android:textSize="@dimen/medium"
+                tools:ignore="contentDescription" />
+
+            <Button
+                android:id="@+id/button5"
+                style="@style/button_style"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_style"
+                android:onClick="settings_button5_Clicked"
+                android:text="@string/settings_button5"
+                android:textSize="@dimen/medium"
+                tools:ignore="contentDescription" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottom_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/dark_gray_transparent"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/button_style"
+            android:src="@drawable/arrow_back_white_24"
+            tools:ignore="contentDescription,SpeakableTextPresentCheck" />
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            style="@style/textView_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:gravity="center"
+            android:paddingEnd="48dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/medium"
+            tools:ignore="RtlSymmetry" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

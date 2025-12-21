@@ -1,0 +1,600 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:ignore="HardcodedText"
+    android:id="@+id/main">
+
+    <FrameLayout
+        android:id="@+id/adContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/adContainer">
+
+        <TableLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:paddingTop="1dp"
+            android:stretchColumns="0">
+
+            <TableRow
+                android:id="@+id/mainRow"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:id="@+id/textView_Name"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:textColor="@color/yellow" />
+
+                <TextView
+                    android:id="@+id/textView_HoleMin"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:textColor="@color/yellow" />
+
+                <TextView
+                    android:id="@+id/textView_HoleMax"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:textColor="@color/yellow" />
+
+                <TextView
+                    android:id="@+id/textView_Hole"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:textColor="@color/yellow" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF8x1Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 8x1"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="8.217"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="8.407"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="8.3"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF10x1Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 10x1"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.217"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.407"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.3"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF10x1.25Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 10x1.25"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.217"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.438"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="10.4"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF12x1.25Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 12x1.25"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.217"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.438"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.4"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF12x1.5Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 12x1.5"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.324"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.560"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="12.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF14x1.5Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 14x1.5"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="14.324"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="14.560"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="14.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF16x1.5Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 16x1.5"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="16.324"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="16.560"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="16.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF18x1.5Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 18x1.5"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.324"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.560"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF18x2Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 18x2"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.433"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.733"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="18.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/eGMF20x1.5Row"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white"
+                android:padding="1dp"
+                android:paddingBottom="1dp">
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:padding="5dp"
+                    android:text="EG M 20x1.5"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="20.324"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="20.560"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="1dp"
+                    android:background="@color/black"
+                    android:gravity="end"
+                    android:padding="5dp"
+                    android:text="20.5"
+                    android:textColor="@color/white" />
+            </TableRow>
+        </TableLayout>
+
+
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottom_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/dark_gray_transparent"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/button_style"
+            android:src="@drawable/arrow_back_white_24"
+            tools:ignore="contentDescription,SpeakableTextPresentCheck" />
+
+        <TextView
+            android:id="@+id/toolbar_title"
+            style="@style/textView_style"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:paddingStart="0dp"
+            android:paddingEnd="48dp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/medium" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

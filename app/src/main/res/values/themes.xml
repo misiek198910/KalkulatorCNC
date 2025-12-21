@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.CalkulatorCNC" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">@color/black</item>
+        <!--   Primary Color -->
+        <item name="colorPrimary">@color/black</item>
+    </style>
+
+    <style name="Theme.CalkulatorCNC" parent="Base.Theme.CalkulatorCNC" />
+</resources>
