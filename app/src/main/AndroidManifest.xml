@@ -24,12 +24,6 @@
             android:name=".ui.activities.ActivityAddTool"
             android:exported="false" />
         <activity
-            android:name=".ui.activities.ActivityFitting"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.ActivityInformation"
-            android:exported="false" />
-        <activity
             android:name=".ui.activities.ActivityApps"
             android:exported="false" />
         <activity
@@ -49,9 +43,6 @@
             android:exported="false" />
         <activity
             android:name=".ui.activities.ActivitySubscription"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.ActivityKofi"
             android:exported="false" />
         <activity
             android:name=".ui.activities.MainActivity"

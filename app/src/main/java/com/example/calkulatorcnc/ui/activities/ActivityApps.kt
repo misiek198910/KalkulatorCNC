@@ -3,196 +3,208 @@ package com.example.calkulatorcnc.ui.activities
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
+import com.example.calkulatorcnc.billing.SubscriptionManager
+import com.google.android.gms.ads.*
 
 class ActivityApps : AppCompatActivity() {
-    var toolbar_title: TextView? = null
-    var button_back: ImageButton? = null
-    var mAdView: AdView? = null
+    private var toolbarTitle: TextView? = null
+    private var buttonBack: ImageButton? = null
+    private lateinit var adContainerLayout: FrameLayout
+    private lateinit var adContainer: FrameLayout
+    private var adView: AdView? = null
 
     private class AppItem(val iconResId: Int, val titleResId: Int, val appLink: String?)
 
-    private val appItems: Array<AppItem> = arrayOf<AppItem>(
-        AppItem(
-            R.drawable.droga_krzyzowa_logo,
-            R.string.app_droga_krzyzowa,
-            "droga_krzyzowa.droga_krzyzowa"
-        ),
-        AppItem(
-            R.drawable.droga_krzyzowa_plus_logo,
-            R.string.app_droga_krzyzowa_plus,
-            "mivs.droga_krzyzowa_plus"
-        ),
-        AppItem(
-            R.drawable.kalendarz_liturgiczny_logo,
-            R.string.app_kalendarz_liturgiczny,
-            "mivs.kalendarz_liturgiczny"
-        ),
-        AppItem(
-            R.drawable.kalendarz_liturgiczny_plus_logo,
-            R.string.app_kalendarz_liturgiczny_plus,
-            "mivs.kalendarz_liturgiczny_plus"
-        ),
+    private val appItems: Array<AppItem> = arrayOf(
+        AppItem(R.drawable.droga_krzyzowa_logo, R.string.app_droga_krzyzowa, "droga_krzyzowa.droga_krzyzowa"),
+        AppItem(R.drawable.kalendarz_liturgiczny_logo, R.string.app_kalendarz_liturgiczny, "mivs.kalendarz_liturgiczny"),
         AppItem(R.drawable.kalkulator_cnc_logo, R.string.app_kalkulator_cnc, "kalkulator.cnc"),
-        AppItem(
-            R.drawable.kalkulator_cnc_plus_logo,
-            R.string.app_kalkulator_cnc_plus,
-            "kalkulator.cnc.plus"
-        ),
         AppItem(R.drawable.ktoz_jak_bog_logo, R.string.app_ktoz_jak_bog, "mivs.ktozjakbog"),
-        AppItem(
-            R.drawable.ktoz_jak_bog_plus_logo,
-            R.string.app_ktoz_jak_bog_plus,
-            "mivs.ktozjakbog_plus"
-        ),
         AppItem(R.drawable.moj_rozaniec_logo, R.string.app_moj_rozaniec, "mivs.m_j_r_aniec"),
-        AppItem(
-            R.drawable.moj_rozaniec_plus_logo,
-            R.string.app_moj_rozaniec_plus,
-            "mivs.m_j_r_aniec_plus"
-        ),
-        AppItem(
-            R.drawable.niewolnik_maryi_logo,
-            R.string.app_niewolnik_maryi,
-            "mivs.niewolnik_maryi"
-        ),
-        AppItem(
-            R.drawable.niewolnik_maryi_plus_logo,
-            R.string.app_niewolnik_maryi_plus,
-            "mivs.niewolnik_maryi_plus"
-        ),
+        AppItem(R.drawable.niewolnik_maryi_logo, R.string.app_niewolnik_maryi, "mivs.niewolnik_maryi"),
         AppItem(R.drawable.objawienia_logo, R.string.app_objawienia, "mivs.objawienia"),
-        AppItem(
-            R.drawable.objawienia_plus_logo,
-            R.string.app_objawienia_plus,
-            "mivs.objawienia_plus"
-        ),
-        AppItem(
-            R.drawable.rachunek_sumienia_logo,
-            R.string.app_rachunek_sumienia,
-            "pakiet.rachuneksumienia"
-        ),
-        AppItem(
-            R.drawable.rachunek_sumienia_plus_logo,
-            R.string.app_rachunek_sumienia_plus,
-            "pakiet.rachuneksumienia_plus"
-        )
-
+        AppItem(R.drawable.rachunek_sumienia_logo, R.string.app_rachunek_sumienia, "pakiet.rachuneksumienia"),
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.enableEdgeToEdge()
+        createViewAEdgetoEdgeForAds()
+        setupToolbar()
+        setupAppList()
+    }
+
+    private fun createViewAEdgetoEdgeForAds(){
         setContentView(R.layout.activity_apps)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
         MobileAds.initialize(this)
+        adContainerLayout = findViewById(R.id.adContainerLayout)
+        adContainer = findViewById(R.id.adContainer)
 
-        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
-        val mAdView = AdView(this)
-        mAdView.setAdSize(AdSize.BANNER)
-        mAdView.setAdUnitId(BuildConfig.ADMOB_BANNER_ID)
-        adContainer.addView(mAdView)
-        val adRequest = AdRequest.Builder().build()
-        mAdView.loadAd(adRequest)
+        // Logika Premium
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            handleAds(isPremium)
+        }
+    }
 
-        button_back = findViewById<ImageButton>(R.id.button_back)
-        toolbar_title = findViewById<TextView>(R.id.toolbar_title)
-        toolbar_title!!.setText(R.string.settings_button2)
-        button_back!!.setOnClickListener(View.OnClickListener { v: View? -> finish() })
+    private fun setupToolbar() {
+        buttonBack = findViewById(R.id.button_back)
+        toolbarTitle = findViewById(R.id.toolbar_title)
+        buttonBack?.setOnClickListener { finish() }
+    }
 
+    private fun setupAppList() {
         val container = findViewById<LinearLayout>(R.id.appListContainer)
-        container.setGravity(Gravity.CENTER)
+        container.gravity = Gravity.CENTER_HORIZONTAL
+
+        // Obliczanie marginesów w DP
+        val margin8 = dpToPx(8)
+        val margin12 = dpToPx(12)
 
         for (item in appItems) {
-            val panel = LinearLayout(this)
-            panel.setOrientation(LinearLayout.HORIZONTAL)
-            panel.setPadding(10, 10, 10, 10)
-            panel.setClickable(true)
-            val outValue = TypedValue()
-            getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
-            panel.setBackgroundResource(outValue.resourceId)
+            // Tworzenie "Szklanego" tła programowo
+            val glassBackground = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dpToPx(16).toFloat()
+                // Półprzezroczysty biały (odpowiednik #1AFFFFFF)
+                setColor(Color.parseColor("#1AFFFFFF"))
+                // Subtelne obramowanie (odpowiednik #33FFFFFF)
+                setStroke(dpToPx(1), Color.parseColor("#33FFFFFF"))
+            }
 
-            val panelParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            panelParams.setMargins(5, 5, 5, 5)
-            panel.setLayoutParams(panelParams)
+            val panel = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                background = glassBackground
+                setPadding(margin12, margin12, margin12, margin12)
+                isClickable = true
+                isFocusable = true
 
-            val icon = ImageView(this)
-            val iconParams = LinearLayout.LayoutParams(100, 100)
-            icon.setLayoutParams(iconParams)
-            icon.setImageResource(item.iconResId)
+                // Efekt kliknięcia (Ripple)
+                val outValue = TypedValue()
+                theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
+                foreground = ContextCompat.getDrawable(context, outValue.resourceId)
 
-            val label = TextView(this)
-            val textParams = LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            label.setLayoutParams(textParams)
-            label.setText(item.titleResId)
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f)
-            label.setGravity(Gravity.CENTER_VERTICAL)
-            label.setPadding(16, 0, 0, 0)
-            label.setTypeface(null, Typeface.BOLD) // pogrubienie
-            label.setTextColor(Color.WHITE)
-            label.setBackgroundColor(Color.parseColor("#4A000000"))
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(margin8, margin8, margin8, margin8)
+                    // Ograniczenie szerokości w trybie Landscape
+                    if (resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) {
+                        width = dpToPx(600)
+                    }
+                }
+            }
+
+            val icon = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(dpToPx(50), dpToPx(50))
+                setImageResource(item.iconResId)
+                scaleType = ImageView.ScaleType.FIT_CENTER
+            }
+
+            val label = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f
+                )
+                setText(item.titleResId)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                gravity = Gravity.CENTER_VERTICAL
+                setPadding(dpToPx(16), 0, 0, 0)
+                setTypeface(null, Typeface.BOLD)
+                setTextColor(Color.WHITE)
+            }
+
+            // Ikona strzałki po prawej (akcent wizualny)
+            val arrow = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(dpToPx(24), dpToPx(24))
+                setImageResource(R.drawable.ic_search) // Możesz podmienić na strzałkę w prawo
+                alpha = 0.5f
+            }
 
             panel.addView(icon)
             panel.addView(label)
+            panel.addView(arrow)
 
-            panel.setOnClickListener(View.OnClickListener { v: View? ->
-                if (item.appLink != null) {
-                    OpenStore(item.appLink)
-                }
-            })
+            panel.setOnClickListener {
+                item.appLink?.let { OpenStore(it) }
+            }
 
             container.addView(panel)
         }
     }
 
+    private fun dpToPx(dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+    }
 
-    fun OpenStore(packageName: String?) {
-        try {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=" + packageName)
-                )
-            )
-        } catch (e: Exception) //Jeżeli sklep jest niedostepny
-        {
-            startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse("https://play.google.com/store/apps/details?id=" + packageName)
-                )
-            )
+    private fun handleAds(isPremium: Boolean) {
+        if (isPremium) {
+            adView?.destroy()
+            adView = null
+            adContainer.removeAllViews()
+            adContainerLayout.visibility = View.GONE
+        } else {
+            if (adView == null) {
+                adContainerLayout.visibility = View.VISIBLE
+                loadBannerAd()
+            }
         }
     }
+
+    private fun loadBannerAd() {
+        val adBannerId = BuildConfig.ADMOB_BANNER_ID
+        if (adBannerId == "BRAK_ID" || adBannerId.isEmpty()) {
+            adContainerLayout.visibility = View.GONE
+            return
+        }
+
+        adView = AdView(this).apply {
+            adUnitId = adBannerId
+            setAdSize(calculateAdSize())
+            adContainer.removeAllViews()
+            adContainer.addView(this)
+            loadAd(AdRequest.Builder().build())
+        }
+    }
+
+    private fun calculateAdSize(): AdSize {
+        val displayMetrics = resources.displayMetrics
+        val adWidth = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+    }
+
+    fun OpenStore(packageName: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")))
+        } catch (e: Exception) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")))
+        }
+    }
+
+    override fun onPause() { adView?.pause(); super.onPause() }
+    override fun onResume() { super.onResume(); adView?.resume() }
+    override fun onDestroy() { adView?.destroy(); super.onDestroy() }
 }

@@ -1,0 +1,464 @@
+package com.example.calkulatorcnc.ui.activities
+
+import android.content.Intent
+import android.content.res.Configuration
+import android.graphics.Color
+import android.os.Bundle
+import android.text.Editable
+import android.text.InputType
+import android.text.TextWatcher
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.AdapterView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.toColorInt
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.example.calkulatorcnc.BuildConfig
+import com.example.calkulatorcnc.R
+import com.example.calkulatorcnc.billing.SubscriptionManager
+import com.example.calkulatorcnc.data.preferences.ClassPrefs
+import com.example.calkulatorcnc.ui.adapters.PremiumSpinnerAdapter
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import getMaterialsList
+import kotlin.math.atan
+import kotlin.math.roundToLong
+
+data class TurningResult(
+    val f: Double = 0.0,
+    val s: Double = 0.0,
+    val tc: Double = 0.0,
+    val q: Double = 0.0,
+    val ra: Double = 0.0,
+    val angle: Double = 0.0,
+    val mode: ResultDisplayMode = ResultDisplayMode.STANDARD
+)
+
+enum class ResultDisplayMode { STANDARD, TIME, VOLUME, ROUGHNESS, TAPER }
+
+class ActivityTourning : AppCompatActivity() {
+
+    private lateinit var edtPanel: LinearLayout
+    private lateinit var spinner1: Spinner
+    private lateinit var btnClear: Button
+    private lateinit var materialContainer: LinearLayout
+
+    private var adView: AdView? = null
+    private var calcSys: Int = 1000
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_turning)
+        createViewAEdgetoEdgeForAds()
+        initUI()
+        setupAds()
+        setupSpinner()
+
+        calcSys = if (ClassPrefs().loadPrefInt(this, "calcsys_data") == 1) 12 else 1000
+    }
+
+    private fun createViewAEdgetoEdgeForAds(){
+        val customHeader = findViewById<LinearLayout>(R.id.customHeader)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            customHeader.setPadding(
+                customHeader.paddingLeft,
+                systemBars.top,
+                customHeader.paddingRight,
+                customHeader.paddingBottom
+            )
+
+            adContainer.setPadding(0, 0, 0, systemBars.bottom)
+
+            insets
+        }
+    }
+
+    private fun initUI() {
+        edtPanel = findViewById(R.id.buttons_panel)
+        btnClear = findViewById(R.id.milingbutton2)
+        spinner1 = findViewById(R.id.spinner1)
+        materialContainer = findViewById(R.id.material_container)
+
+        findViewById<View>(R.id.main).setOnClickListener { hideKeyboard() }
+        findViewById<ImageButton>(R.id.button_back).setOnClickListener { finish() }
+        findViewById<Button>(R.id.milingbutton1).setOnClickListener { calculate() }
+        findViewById<Button>(R.id.milingbutton3).setOnClickListener { showInfo() }
+
+        btnClear.setOnClickListener { clearInputs() }
+    }
+
+    private fun setupAds() {
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+                adContainer.visibility = View.GONE
+                adView?.destroy()
+                adView = null
+            } else if (resources.configuration.screenHeightDp >= 400) {
+                adContainer.visibility = View.VISIBLE
+                if (adView == null) {
+                    adView = AdView(this).apply {
+                        setAdSize(AdSize.BANNER)
+                        adUnitId = BuildConfig.ADMOB_BANNER_ID
+                        adContainer.addView(this)
+                        loadAd(AdRequest.Builder().build())
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setupSpinner() {
+        val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+        val spinnerArray = resources.getStringArray(R.array.tourning_spinner1_data)
+        val premiumPositions = listOf(3,4,5,6)
+
+        val adapter = PremiumSpinnerAdapter(this, R.layout.spinner_item, spinnerArray, isPremium, premiumPositions)
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item) // To jest teraz kluczowe!
+        spinner1.adapter = adapter
+        spinner1.setPopupBackgroundResource(R.drawable.bg_spinner_popup_solid)
+
+        spinner1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p: AdapterView<*>?, v: View?, pos: Int, id: Long) {
+                updateDynamicInputs(pos)
+            }
+            override fun onNothingSelected(p: AdapterView<*>?) {}
+        }
+    }
+
+    private fun updateDynamicInputs(position: Int) {
+        val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+        if (!isPremium && (position in listOf(3, 4, 5, 6))) {
+            edtPanel.removeAllViews()
+            materialContainer.removeAllViews()
+            findViewById<Button>(R.id.milingbutton1).isEnabled = false
+            showPremiumRequired()
+            return
+        }
+
+        findViewById<Button>(R.id.milingbutton1).isEnabled = true
+        edtPanel.removeAllViews()
+        materialContainer.removeAllViews()
+
+        // Przycisk materiału dla Tokowania i Wytaczania
+        if (position in listOf(0, 1, 2)) {
+            val btnMaterial = com.google.android.material.button.MaterialButton(this).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dpToPx(55)).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    setMargins(dpToPx(8), dpToPx(4), dpToPx(8), dpToPx(12))
+                }
+                text = getString(R.string.material)
+                setTextColor(Color.WHITE)
+                setBackgroundResource(R.drawable.button_style)
+                backgroundTintList = null
+                cornerRadius = dpToPx(12)
+                setOnClickListener { showMaterialSelectionDialog(position) }
+            }
+            materialContainer.addView(btnMaterial)
+        }
+
+        edtPanel.orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+
+        val hints = when (position) {
+            0 -> arrayOf(R.string.VC, R.string.AP, R.string.Fn, R.string.KC, R.string.DM) //skrawanie
+            1 -> arrayOf(R.string.VC, R.string.DM, R.string.Fn) // Wytaczanie
+            2 -> arrayOf(R.string.VC, R.string.DM, R.string.P) // Gwintowanie (Przeniesione tutaj)
+            3 -> arrayOf(R.string.LM, R.string.VC, R.string.DC, R.string.Fn) // Czas
+            4 -> arrayOf(R.string.VC, R.string.AP, R.string.Fn) // Wydajność
+            5 -> arrayOf(R.string.Fn, R.string.RE)             // Chropowatość
+            6 -> arrayOf(R.string.DC, R.string.dm, R.string.LM) // Stożek
+            else -> emptyArray()
+        }
+
+        hints.forEachIndexed { index, hintRes ->
+            edtPanel.addView(createEditText(index, getString(hintRes)))
+        }
+    }
+
+    private fun showMaterialSelectionDialog(operationPos: Int) {
+        val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+        val materials = getMaterialsList(this)
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.window_materials_modern, null)
+        val container = dialogView.findViewById<LinearLayout>(R.id.materialsContainer)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        materials.forEachIndexed { index, material ->
+            val itemView = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
+            val tvName = itemView.findViewById<TextView>(R.id.materialName)
+            if (!isPremium && index > 0) itemView.findViewById<ImageView>(R.id.lockIcon).visibility = View.VISIBLE
+            tvName.text = material.name
+
+            itemView.setOnClickListener {
+                if (!isPremium && index > 0) {
+                    dialog.dismiss()
+                    showPremiumRequired()
+                } else {
+                    val editTexts = (0 until edtPanel.childCount).map { edtPanel.getChildAt(it) }.filterIsInstance<EditText>()
+                    val operationPos = spinner1.selectedItemPosition
+
+                    when (operationPos) {
+                        0 -> { // PARAMETRY SKRAWANIA (VC, AP, Fn, KC, DM)
+                            if (editTexts.size >= 5) {
+                                editTexts[0].setText(material.vcTurning.toString()) // VC
+                                editTexts[2].setText(material.fnTurning.toString()) // Fn
+                                editTexts[3].setText(material.kc.toString())         // KC - automatycznie!
+                            }
+                        }
+                        1 -> { // WYTACZANIE (VC, DM, Fn)
+                            if (editTexts.size >= 3) {
+                                editTexts[0].setText(material.vcTurning.toString()) // VC
+                                editTexts[2].setText(material.fnTurning.toString()) // Fn
+                            }
+                        }
+                        2 -> { // GWINTOWANIE (VC, DM, JT)
+                            if (editTexts.size >= 3) {
+                                // Teraz używamy dedykowanego vcThreading zamiast 180!
+                                editTexts[0].setText(material.vcThreading.toString())
+                            }
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            }
+            container.addView(itemView)
+        }
+        dialogView.findViewById<Button>(R.id.btnCancelMaterials).setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun createEditText(index: Int, hintText: String) = EditText(this).apply {
+        layoutParams = LinearLayout.LayoutParams(dpToPx(220), dpToPx(48)).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            setMargins(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8))
+        }
+        textSize = 18f
+        setTextColor(Color.WHITE)
+        setHintTextColor(androidx.core.content.ContextCompat.getColor(this@ActivityTourning, R.color.textColor_hint))
+        hint = hintText
+        tag = index
+        gravity = Gravity.CENTER
+        setBackgroundResource(R.drawable.bg_search_input) // Tło zgodne z nagłówkiem
+        inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_CLASS_NUMBER
+
+        addTextChangedListener(object : TextWatcher {
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // POPRAWKA: Sprawdzamy, czy JAKIEKOLWIEK pole EditText ma wpisany tekst
+                val anyFieldNotEmpty = (0 until edtPanel.childCount)
+                    .map { edtPanel.getChildAt(it) }
+                    .filterIsInstance<EditText>()
+                    .any { it.text.isNotEmpty() }
+
+                btnClear.isEnabled = anyFieldNotEmpty
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun calculate() {
+        val editTexts = (0 until edtPanel.childCount).map { edtPanel.getChildAt(it) }.filterIsInstance<EditText>()
+        if (editTexts.isEmpty()) return
+        val vals = editTexts.map { it.text.toString().toDoubleOrNull() ?: 0.0 }
+
+        if (vals.any { it <= 0.0 }) {
+            Toast.makeText(this, getString(R.string.error2), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val result = when (spinner1.selectedItemPosition) {
+            0 -> { // PARAMETRY SKRAWANIA (5 pól)
+                val s = (vals[0] * calcSys) / Math.PI / vals[4]
+                val f = vals[2] * s
+                TurningResult(f = f, s = s, mode = ResultDisplayMode.STANDARD)
+            }
+            1 -> { // WYTACZANIE
+                val s = (vals[0] * calcSys) / Math.PI / vals[1]
+                val f = vals[2] * s
+                TurningResult(f = f, s = s, mode = ResultDisplayMode.STANDARD)
+            }
+            2 -> { // Gwintowanie
+                val s = (vals[0] * calcSys) / Math.PI / vals[1]
+                val f = s * vals[2]
+                TurningResult(s = s, f = f, mode = ResultDisplayMode.STANDARD)
+            }
+            3 -> { // Czas Maszynowy
+                val s = (vals[1] * calcSys) / Math.PI / vals[2]
+                val tc = vals[0] / (vals[3] * s)
+                TurningResult(tc = tc, mode = ResultDisplayMode.TIME)
+            }
+            4 -> { // Wydajność
+                TurningResult(q = vals[0] * vals[1] * vals[2], mode = ResultDisplayMode.VOLUME)
+            }
+            5 -> { // Chropowatość
+                val ra = (vals[0] * vals[0]) / (32 * vals[1]) * 1000
+                TurningResult(ra = ra, mode = ResultDisplayMode.ROUGHNESS)
+            }
+            6 -> { // Stożek
+                val angleRad = atan((vals[0] - vals[1]) / (2 * vals[2]))
+                val angleDeg = Math.toDegrees(angleRad)
+                TurningResult(angle = angleDeg, mode = ResultDisplayMode.TAPER)
+            }
+            else -> TurningResult()
+        }
+        showResultDialog(result)
+    }
+
+    private fun showResultDialog(res: TurningResult) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.window_calculation_modern, null)
+        val label1 = dialogView.findViewById<TextView>(R.id.label1)
+        val value1 = dialogView.findViewById<TextView>(R.id.value1)
+        val row1 = dialogView.findViewById<RelativeLayout>(R.id.row1)
+        val label2 = dialogView.findViewById<TextView>(R.id.label2)
+        val value2 = dialogView.findViewById<TextView>(R.id.value2)
+        val row2 = dialogView.findViewById<RelativeLayout>(R.id.row2)
+        val label3 = dialogView.findViewById<TextView>(R.id.label3)
+        val value3 = dialogView.findViewById<TextView>(R.id.value3)
+        val row3 = dialogView.findViewById<RelativeLayout>(R.id.row3)
+        val separator = dialogView.findViewById<View>(R.id.separator)
+        val btnClose = dialogView.findViewById<Button>(R.id.btnCloseResults)
+
+        when (res.mode) {
+            ResultDisplayMode.TIME -> {
+                row1.visibility = View.GONE
+                row2.visibility = View.GONE
+                separator.visibility = View.GONE
+                label3.text = getString(R.string.tc_colon)
+                value3.text = String.format("%.2f min", res.tc)
+            }
+            ResultDisplayMode.VOLUME -> {
+                row1.visibility = View.GONE
+                row2.visibility = View.GONE
+                separator.visibility = View.GONE
+                label3.text = getString(R.string.q_colon)
+                value3.text = String.format("%.1f cm³/min", res.q)
+            }
+            ResultDisplayMode.STANDARD -> {
+                label1.text = getString(R.string.f_colon)
+                value1.text = String.format("%.2f", res.f)
+                label2.text = getString(R.string.s_colon)
+                value2.text = res.s.roundToLong().toString()
+                row3.visibility = View.GONE
+                separator.visibility = View.GONE
+            }
+            ResultDisplayMode.ROUGHNESS -> {
+                row1.visibility = View.GONE
+                row2.visibility = View.GONE
+                separator.visibility = View.GONE
+                label3.text = "Chropowatość Ra:"
+                value3.text = String.format("%.2f µm", res.ra)
+            }
+            ResultDisplayMode.TAPER -> {
+                row1.visibility = View.GONE
+                row2.visibility = View.GONE
+                separator.visibility = View.GONE
+                label3.text = "Kąt nachylenia (α):"
+                value3.text = String.format("%.3f°", res.angle)
+            }
+        }
+
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        btnClose.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun showPremiumRequired() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.window_premium_upgrade, null)
+        val btnGo = dialogView.findViewById<Button>(R.id.btnGoToPremium)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelPremium)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        btnGo.setOnClickListener {
+            dialog.dismiss()
+            spinner1.setSelection(0)
+            startActivity(Intent(this, ActivitySubscription::class.java))
+        }
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+            spinner1.setSelection(0)
+        }
+        dialog.show()
+    }
+
+    private fun clearInputs() {
+        for (i in 0 until edtPanel.childCount) (edtPanel.getChildAt(i) as? EditText)?.setText("")
+        btnClear.isEnabled = false
+    }
+
+    private fun showInfo() {
+        val position = spinner1.selectedItemPosition
+        val isMetric = (calcSys == 1000)
+
+        // Mapowanie pozycji spinnera na konkretne ID zasobów (Type-safe)
+        val resId = when (position) {
+            0 -> if (isMetric) R.string.info_8_m else R.string.info_8_inch
+            1 -> if (isMetric) R.string.info_9_m else R.string.info_9_inch
+            2 -> if (isMetric) R.string.info_13_m else R.string.info_13_inch // Gwintowanie na poz 2
+            3 -> if (isMetric) R.string.info_10_m else R.string.info_10_inch // Czas na poz 3
+            4 -> if (isMetric) R.string.info_11_m else R.string.info_11_inch // Wydajność na poz 4
+            5 -> if (isMetric) R.string.info_14_m else R.string.info_14_inch // Chropowatość
+            6 -> if (isMetric) R.string.info_15_m else R.string.info_15_inch // Stożek
+            else -> null
+        }
+
+        resId?.let { id ->
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.window_information_modern, null)
+            val content = dialogView.findViewById<TextView>(R.id.infoContent)
+            val btnOk = dialogView.findViewById<Button>(R.id.btnOk)
+
+            // Wyświetlanie tekstu z obsługą HTML (tagi <br>, <b> itp.)
+            content.text = android.text.Html.fromHtml(
+                getString(id),
+                android.text.Html.FROM_HTML_MODE_LEGACY
+            )
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create()
+
+            // Ustawienie przezroczystego tła dla okna, aby widoczne były zaokrąglone rogi MaterialCardView
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            btnOk.setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        } ?: run {
+            // Opcjonalnie: obsługa błędu, jeśli nie znaleziono mapowania
+            Toast.makeText(this, "Brak informacji dla tego parametru", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
+    }
+
+    override fun onPause() { adView?.pause(); super.onPause() }
+    override fun onResume() { super.onResume(); adView?.resume() }
+    override fun onDestroy() { adView?.destroy(); super.onDestroy() }
+}

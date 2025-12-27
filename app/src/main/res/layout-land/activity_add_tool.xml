@@ -6,183 +6,252 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/background"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:padding="12dp">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/aplication_new_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
         app:layout_constraintTop_toTopOf="parent">
 
-        <EditText
-            android:id="@+id/editText1"
-            style="@style/textView_style"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edittext_style"
-            android:hint="@string/toolsName"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            android:maxWidth="400dp"
-            android:minWidth="100dp"
-            android:minHeight="48dp"
-            android:padding="5dp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black"
-            android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/editText2"
-            style="@style/textView_style"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edittext_style"
-            android:hint="@string/toolsF"
-            android:importantForAutofill="no"
-            android:inputType="numberDecimal"
-            android:maxWidth="400dp"
-            android:minWidth="100dp"
-            android:minHeight="48dp"
-            android:padding="5dp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black"
-            android:textSize="18sp" />
-
-        <EditText
-            android:id="@+id/editText3"
-            style="@style/textView_style"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edittext_style"
-            android:hint="@string/toolsS"
-            android:importantForAutofill="no"
-            android:inputType="numberDecimal"
-            android:maxWidth="400dp"
-            android:minWidth="100dp"
-            android:minHeight="48dp"
-            android:padding="5dp"
-            android:textColor="@color/black"
-            android:textColorHint="@color/black"
-            android:textSize="18sp" />
-
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="vertical"
+            android:padding="4dp">
 
-            <CheckBox
-                android:id="@+id/checkBox1"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:textSize="14sp"
-                tools:ignore="DuplicateSpeakableTextCheck" />
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/editText4"
-                style="@style/textView_style"
-                android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/tools"
+                        tools:ignore="ContentDescription" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/toolsName"
+                        android:textColorHint="@color/textColor_hint"
+                        app:boxStrokeColor="@color/button_dark_blue_1"
+                        app:hintTextColor="@color/white">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editText1"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:background="@drawable/bg_search_input"
+                            android:inputType="text"
+                            android:padding="8dp"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/material"
+                        tools:ignore="ContentDescription" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilWorkpiece"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/material"
+                        android:textColorHint="@color/textColor_hint"
+                        app:boxStrokeColor="@color/button_dark_blue_1"
+                        app:hintTextColor="@color/white">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editText4"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:background="@drawable/bg_search_input"
+                            android:focusable="false"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/edittext_style"
-                android:hint="@string/toolsWorkpiece"
-                android:importantForAutofill="no"
-                android:inputType="text"
-                android:maxWidth="400dp"
-                android:minWidth="100dp"
-                android:minHeight="48dp"
-                android:padding="5dp"
-                android:textColor="@color/black"
-                android:textColorHint="@color/black"
-                android:textSize="18sp" />
+                android:layout_marginTop="12dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/rotate"
+                        tools:ignore="ContentDescription" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/s_hint"
+                        android:textColorHint="@color/textColor_hint"
+                        app:boxStrokeColor="@color/button_dark_blue_1"
+                        app:hintTextColor="@color/white">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editText3"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:background="@drawable/bg_search_input"
+                            android:inputType="number"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/feed"
+                        tools:ignore="ContentDescription" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/f_hint"
+                        android:textColorHint="@color/textColor_hint"
+                        app:boxStrokeColor="@color/button_dark_blue_1"
+                        app:hintTextColor="@color/white">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/editText2"
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:background="@drawable/bg_search_input"
+                            android:inputType="number"
+                            android:textColor="@color/white"
+                            android:textSize="16sp"
+                            tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+                    </com.google.android.material.textfield.TextInputLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="16dp"
+                android:hint="@string/notes_hint"
+                android:textColorHint="@color/textColor_hint"
+                app:boxStrokeColor="@color/button_dark_blue_1"
+                app:hintTextColor="@color/white">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editText5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_search_input"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minHeight="80dp"
+                    android:padding="12dp"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
+            </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <CheckBox
-                android:id="@+id/checkBox2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:textSize="14sp"
-                tools:ignore="DuplicateSpeakableTextCheck" />
-
-            <EditText
-                android:id="@+id/editText5"
-                style="@style/textView_style"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
-                android:background="@drawable/edittext_style"
-                android:hint="@string/toolsNotes"
-                android:importantForAutofill="no"
-                android:inputType="text"
-                android:maxWidth="400dp"
-                android:maxLines="3"
-                android:minWidth="100dp"
-                android:minHeight="48dp"
-                android:padding="5dp"
-                android:textColor="@color/black"
-                android:textColorHint="@color/black"
-                android:textSize="18sp" />
-
-        </LinearLayout>
-
-
-        <Button
-            android:id="@+id/button1"
-            style="@style/button_style"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/button_style"
-            android:text="@string/toolsSave" />
-
-
-    </LinearLayout>
+    </ScrollView>
 
     <LinearLayout
-        android:id="@+id/bottom_toolbar"
-        android:layout_width="match_parent"
+        android:id="@+id/buttonContainer"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/dark_gray_transparent"
         android:orientation="horizontal"
-        android:padding="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <ImageButton
-            android:onClick="button_back_Clicked"
-            android:id="@+id/button_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/button_style"
-            android:src="@drawable/arrow_back_white_24"
-            tools:ignore="contentDescription,SpeakableTextPresentCheck" />
-
-        <TextView
-            android:id="@+id/toolbar_title"
-            style="@style/textView_style"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/button1"
+            style="@style/button_style"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:paddingStart="0dp"
-            android:paddingEnd="48dp"
-            android:textColor="@color/white"
-            android:textSize="@dimen/medium" />
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="@string/save"
+            android:background="@drawable/button_style"
+            tools:ignore="VisualLintButtonSize" />
 
+        <Button
+            android:id="@+id/button2"
+            style="@style/button_style"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/close"
+            android:background="@drawable/button_style"
+            tools:ignore="VisualLintButtonSize" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,213 +1,219 @@
 package com.example.calkulatorcnc.ui.activities
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ListView
-import androidx.activity.addCallback
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatButton
+import androidx.appcompat.widget.SearchView
+import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.calkulatorcnc.BuildConfig
-import com.example.calkulatorcnc.data.preferences.ClassPrefs
 import com.example.calkulatorcnc.R
+import com.example.calkulatorcnc.billing.SubscriptionManager
+import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.entity.Tool
 import com.example.calkulatorcnc.ui.adapters.ToolAdapter
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.gms.ads.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class ActivityTools : AppCompatActivity() {
 
-    // Widoki - lateinit dla bezpieczeństwa
-    private lateinit var btnDelete: AppCompatButton
-    private lateinit var btnEdit: AppCompatButton
-    private lateinit var btnAdd: AppCompatButton
+    private lateinit var recyclerViewTools: RecyclerView
+    private lateinit var fabAdd: FloatingActionButton
     private lateinit var btnBack: ImageButton
-    private lateinit var listView: ListView
+    private lateinit var tvToolCount: TextView
+    private lateinit var searchView: SearchView
 
-    // Dane i stan
-    private var toolList: MutableList<Tool> = mutableListOf()
+    private lateinit var db: AppDatabase
     private var adapter: ToolAdapter? = null
-    private var selectedPosition: Int = -1
     private val toolsLimit = 3
+    private var adView: AdView? = null
+    private var currentToolsCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_tools)
-
-        setupInsets()
+        db = AppDatabase.getDatabase(this)
+        createViewAEdgetoEdgeForAds()
         initViews()
-        loadTools()
         setupAds()
+        setupDataObservation()
+        setupSearchLogic()
+    }
 
-        onBackPressedDispatcher.addCallback(this) {
-            saveAndExit()
+    private fun createViewAEdgetoEdgeForAds(){
+        val customHeader = findViewById<LinearLayout>(R.id.customHeader)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(0, 0, 0, 0)
+
+            customHeader.setPadding(
+                customHeader.paddingLeft,
+                systemBars.top,
+                customHeader.paddingRight,
+                customHeader.paddingBottom
+            )
+
+            adContainer.setPadding(
+                adContainer.paddingLeft,
+                adContainer.paddingTop,
+                adContainer.paddingRight,
+                systemBars.bottom
+            )
+
+            insets
         }
     }
 
     private fun initViews() {
-        btnDelete = findViewById(R.id.ic_delete)
-        btnEdit = findViewById(R.id.ic_edit)
-        btnAdd = findViewById(R.id.ic_add)
+        recyclerViewTools = findViewById(R.id.recyclerViewTools)
+        val spanCount = if (resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE) 2 else 1
+        recyclerViewTools.layoutManager = GridLayoutManager(this, spanCount)
+
+        fabAdd = findViewById(R.id.fab_add_tool)
         btnBack = findViewById(R.id.button_back)
-        listView = findViewById(R.id.listView1)
+        tvToolCount = findViewById(R.id.tvToolCount)
+        searchView = findViewById(R.id.searchView)
 
-        // Inicjalizacja adaptera raz
-        adapter = ToolAdapter(this, toolList)
-        listView.adapter = adapter
+        // Stylizacja SearchView
+        styleSearchView()
 
-        btnBack.setOnClickListener { saveAndExit() }
+        adapter = ToolAdapter(
+            mutableListOf(),
+            onEdit = { tool -> openEditTool(tool) },
+            onDelete = { tool -> confirmDeletion(tool) }
+        )
+        recyclerViewTools.adapter = adapter
 
-        listView.setOnItemClickListener { _, _, position, _ ->
-            selectedPosition = position
-            updateButtonStates(true)
-        }
+        btnBack.setOnClickListener { finish() }
 
-        // Długie kliknięcie od razu przechodzi do edycji
-        listView.setOnItemLongClickListener { _, _, position, _ ->
-            openEditTool(position)
-            true
-        }
-
-        btnAdd.setOnClickListener {
-            if (toolList.size >= toolsLimit) {
-                showMessage(getString(R.string.toolsLimit))
+        fabAdd.setOnClickListener {
+            val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+            if (!isPremium && currentToolsCount >= toolsLimit) {
+                showPremiumRequiredDialog()
             } else {
-                val intent = Intent(this, ActivityAddTool::class.java)
-                intent.putExtra("editDisabled", false)
-                startActivity(intent)
-                finish() // Kończymy, bo dane wrócą przez Intent w onCreate/onResume
+                startActivity(Intent(this, ActivityAddTool::class.java).apply {
+                    putExtra("editDisabled", false)
+                })
             }
         }
-
-        btnEdit.setOnClickListener {
-            if (selectedPosition != -1) openEditTool(selectedPosition)
-        }
-
-        btnDelete.setOnClickListener {
-            if (selectedPosition != -1) {
-                toolList.removeAt(selectedPosition)
-                selectedPosition = -1
-                adapter?.notifyDataSetChanged()
-                updateButtonStates(false)
-                saveJson()
-            }
-        }
-
-        updateButtonStates(false)
     }
 
-    private fun openEditTool(position: Int) {
-        val tool = toolList[position]
-        val intent = Intent(this, ActivityAddTool::class.java).apply {
+    private fun styleSearchView() {
+        val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        searchEditText.setTextColor(Color.WHITE)
+        searchEditText.setHintTextColor("#BDBDBD".toColorInt())
+
+        val searchIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_mag_icon)
+        searchIcon.setColorFilter(Color.WHITE)
+
+        val closeIcon = searchView.findViewById<ImageView>(androidx.appcompat.R.id.search_close_btn)
+        closeIcon.setColorFilter(Color.WHITE)
+    }
+
+    private fun setupDataObservation() {
+        // Ważne: Sprawdź czy import to: androidx.lifecycle.Observer
+        db.toolDao().getAllTools().observe(this) { list ->
+            list?.let {
+                currentToolsCount = it.size
+                adapter?.updateData(it)
+                updateCountDisplay(it.size) // Przekazujemy samą liczbę
+            }
+        }
+    }
+
+    private fun setupSearchLogic() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter?.filter(newText ?: "")
+                updateCountDisplay(adapter?.getFilteredCount() ?: 0)
+                return true
+            }
+        })
+    }
+
+    private fun updateCountDisplay(count: Int) {
+        tvToolCount.text = count.toString()
+    }
+
+    private fun openEditTool(tool: Tool) {
+        startActivity(Intent(this, ActivityAddTool::class.java).apply {
+            putExtra("toolId", tool.id)
             putExtra("editDisabled", true)
             putExtra("toolName", tool.name)
             putExtra("toolF", tool.f)
             putExtra("toolS", tool.s)
             putExtra("workpiece", tool.workpiece)
             putExtra("notes", tool.notes)
-            putExtra("item", position)
+        })
+    }
+
+    private fun confirmDeletion(tool: Tool) {
+        // Room LiveData automatycznie odświeży widok po usunięciu
+        lifecycleScope.launch(Dispatchers.IO) {
+            db.toolDao().deleteTool(tool)
         }
-        startActivity(intent)
-        finish()
     }
 
-    private fun updateButtonStates(isItemSelected: Boolean) {
-        val alpha = if (isItemSelected) 1.0f else 0.2f
-        btnDelete.isEnabled = isItemSelected
-        btnEdit.isEnabled = isItemSelected
-        btnDelete.alpha = alpha
-        btnEdit.alpha = alpha
-    }
-
-    override fun onResume() {
-        super.onResume()
-        handleIncomingData()
-    }
-
-    private fun handleIncomingData() {
-        val toolName = intent.getStringExtra("ToolName") ?: return
-        if (toolName.isEmpty()) return
-
-        val toolWp = intent.getStringExtra("ToolWorkpiece")
-        val toolF = intent.getStringExtra("ToolF")
-        val toolS = intent.getStringExtra("ToolS")
-        val notes = intent.getStringExtra("ToolNotes")
-        val isEdit = intent.getBooleanExtra("editDisabled", false)
-        val pos = intent.getIntExtra("item", -1)
-
-        val newTool = Tool(toolWp, toolName, toolF, toolS, notes)
-
-        if (isEdit && pos != -1) {
-            toolList[pos] = newTool
-        } else {
-            toolList.add(newTool)
-        }
-
-        // Czyścimy intent, żeby nie dodawać tego samego przy obrocie ekranu
-        intent.removeExtra("ToolName")
-
-        adapter?.notifyDataSetChanged()
-        saveJson()
-    }
-
-    private fun loadTools() {
-        val pref = ClassPrefs()
-        val data = pref.loadPrefString(this, "toolList")
-        if (data.isNotEmpty()) {
-            val type = object : TypeToken<MutableList<Tool>>() {}.type
-            val loadedList: MutableList<Tool>? = Gson().fromJson(data, type)
-            if (loadedList != null) {
-                toolList.clear()
-                toolList.addAll(loadedList)
-                adapter?.notifyDataSetChanged()
+    private fun setupAds() {
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+                adContainer.visibility = View.GONE
+                adView?.destroy()
+                adView = null
+            } else {
+                adContainer.visibility = View.VISIBLE
+                if (adView == null) {
+                    MobileAds.initialize(this)
+                    adView = AdView(this).apply {
+                        setAdSize(AdSize.BANNER)
+                        adUnitId = BuildConfig.ADMOB_BANNER_ID
+                        adContainer.addView(this)
+                        loadAd(AdRequest.Builder().build())
+                    }
+                }
             }
         }
     }
 
-    private fun saveJson() {
-        val json = Gson().toJson(toolList)
-        ClassPrefs().savePrefString(this, "toolList", json)
-    }
+    private fun showPremiumRequiredDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.window_premium_upgrade, null)
+        val btnGo = dialogView.findViewById<Button>(R.id.btnGoToPremium)
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancelPremium)
 
-    private fun saveAndExit() {
-        saveJson()
-        finish()
-    }
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
 
-    private fun showMessage(str: String) {
-        AlertDialog.Builder(this)
-            .setMessage(str)
-            .setCancelable(false)
-            .setPositiveButton("OK") { d, _ -> d.dismiss() }
-            .show()
-    }
-
-    private fun setupAds() {
-        MobileAds.initialize(this)
-        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
-        val adView = AdView(this).apply {
-            setAdSize(AdSize.BANNER)
-            adUnitId = BuildConfig.ADMOB_BANNER_ID
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        btnGo.setOnClickListener {
+            dialog.dismiss()
+            startActivity(Intent(this, ActivitySubscription::class.java))
         }
-        adContainer.addView(adView)
-        adView.loadAd(AdRequest.Builder().build())
+        btnCancel.setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+    override fun onDestroy() {
+        adView?.destroy()
+        super.onDestroy()
     }
 }

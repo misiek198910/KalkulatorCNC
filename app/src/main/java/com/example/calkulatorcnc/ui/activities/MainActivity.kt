@@ -1,12 +1,14 @@
 package com.example.calkulatorcnc.ui.activities
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.data.preferences.ClassPrefs
@@ -18,27 +20,40 @@ import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import com.google.android.ump.ConsentInformation
 import java.util.concurrent.atomic.AtomicBoolean
+import androidx.core.view.isEmpty
 
 class MainActivity : AppCompatActivity() {
 
     private var adView: AdView? = null
-    private val isMobileAdsInitializeCalled = AtomicBoolean(false)
-    private var consentInformation: ConsentInformation? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
 
-        // Obsługa marginesów systemowych (pasek statusu i nawigacji)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
+        createViewAEdgetoEdgeForAds()
         setupAds()
         checkFirstStartAndLocale()
+        setupClickListeners()
+    }
+    private fun createViewAEdgetoEdgeForAds(){
+        val gridLayout = findViewById<android.widget.GridLayout>(R.id.mainGrid)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            gridLayout.setPadding(
+                gridLayout.paddingLeft,
+                systemBars.top,
+                gridLayout.paddingRight,
+                gridLayout.paddingBottom
+            )
+
+            adContainer.setPadding(0, 0, 0, systemBars.bottom)
+
+            insets
+        }
     }
 
     private fun setupAds() {
@@ -59,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                     adContainer.visibility = View.GONE
                 } else {
                     adContainer.visibility = View.VISIBLE
-                    if (adContainer.childCount == 0) { // Ładuj tylko jeśli jeszcze nie ma reklamy
+                    if (adContainer.isEmpty()) { // Ładuj tylko jeśli jeszcze nie ma reklamy
                         val newAdView = AdView(this).apply {
                             setAdSize(AdSize.BANNER)
                             adUnitId = BuildConfig.ADMOB_BANNER_ID
@@ -73,25 +88,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Metody kliknięć - uproszczone wywołania Intent
-    fun main_button1_clicked(view: View?) {
-        startActivity(Intent(this, ActivityMilling::class.java))
-    }
+    private fun setupClickListeners() {
+        findViewById<View>(R.id.card_calc).setOnClickListener {
+            startActivity(Intent(this, ActivityMilling::class.java))
+        }
 
-    fun main_button2_clicked(view: View?) {
-        startActivity(Intent(this, ActivityTourning::class.java))
-    }
+        findViewById<View>(R.id.card_tools).setOnClickListener {
+            startActivity(Intent(this, ActivityTourning::class.java))
+        }
 
-    fun main_button3_clicked(view: View?) {
-        startActivity(Intent(this, ActivityTools::class.java))
-    }
+        findViewById<View>(R.id.card_fits).setOnClickListener {
+            startActivity(Intent(this, ActivityTools::class.java))
+        }
 
-    fun main_button4_clicked(view: View?) {
-        startActivity(Intent(this, ActivityFitting::class.java))
-    }
+        findViewById<View>(R.id.card_other).setOnClickListener {
+            startActivity(Intent(this, ActivityTables::class.java))
+        }
 
-    fun main_button6_clicked(view: View?) {
-        startActivity(Intent(this, ActivitySettings::class.java))
+        findViewById<View>(R.id.card_settings).setOnClickListener {
+            startActivity(Intent(this, ActivitySettings::class.java))
+        }
+
+        findViewById<View>(R.id.card_notifications).setOnClickListener {
+
+        }
+
+        findViewById<View>(R.id.card_no_ads).setOnClickListener {
+            startActivity(Intent(this, ActivitySubscription::class.java))
+        }
     }
 
     private fun checkFirstStartAndLocale() {

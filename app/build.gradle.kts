@@ -20,8 +20,8 @@ android {
         applicationId = "kalkulator.cnc"
         minSdk = 27
         targetSdk = 36
-        versionCode = 80
-        versionName = "3.2.80"
+        versionCode = 81
+        versionName = "3.2.81"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

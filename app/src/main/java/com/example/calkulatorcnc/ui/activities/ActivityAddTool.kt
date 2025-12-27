@@ -2,11 +2,10 @@ package com.example.calkulatorcnc.ui.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.widget.*
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -14,52 +13,55 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.calkulatorcnc.R
+import com.example.calkulatorcnc.billing.SubscriptionManager
+import com.example.calkulatorcnc.data.db.AppDatabase
+import com.example.calkulatorcnc.entity.Tool
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import getMaterialsList
 
 class ActivityAddTool : AppCompatActivity() {
 
-    // Widoki - małe litery, lateinit eliminuje sprawdzanie nulli
+    private var toolId: Int = 0
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var btnAdd: Button
+
+    private lateinit var btnClose: Button
     private lateinit var etWorkpiece: EditText
     private lateinit var etName: EditText
     private lateinit var etF: EditText
     private lateinit var etS: EditText
     private lateinit var etNotes: EditText
-    private lateinit var cbWorkpiece: CheckBox
-    private lateinit var cbNotes: CheckBox
 
-    // Zmienne pomocnicze
     private var isEditMode: Boolean = false
-    private var toolName: String? = null
-    private var toolF: String? = null
-    private var toolS: String? = null
-    private var workpiece: String? = null
-    private var notes: String? = null
-    private var itemPos: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_add_tool)
 
-        // Obsługa Insets
+        createViewAEdgetoEdgeForAds()
+        initViews()
+
+        toolId = intent.getIntExtra("toolId", 0)
+        isEditMode = intent.getBooleanExtra("editDisabled", false)
+
+        loadDataFromIntent()
+        setupListeners()
+        setupMaterialSelection()
+
+        mainLayout.setOnClickListener { hideKeyboard() }
+    }
+
+    private fun createViewAEdgetoEdgeForAds(){
+        setContentView(R.layout.activity_add_tool)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        // Obsługa przycisku powrotu systemowego
-        onBackPressedDispatcher.addCallback(this) {
-            finish()
-        }
-
-        initViews()
-        loadDataFromIntent()
-        setupListeners()
-
-        mainLayout.setOnClickListener { hideKeyboard() }
     }
 
     private fun initViews() {
@@ -69,115 +71,101 @@ class ActivityAddTool : AppCompatActivity() {
         etS = findViewById(R.id.editText3)
         etWorkpiece = findViewById(R.id.editText4)
         etNotes = findViewById(R.id.editText5)
-        cbWorkpiece = findViewById(R.id.checkBox1)
-        cbNotes = findViewById(R.id.checkBox2)
         btnAdd = findViewById(R.id.button1)
+        btnClose = findViewById(R.id.button2)
+        onBackPressedDispatcher.addCallback(this) {
+            finish()
+        }
     }
 
     private fun loadDataFromIntent() {
-        isEditMode = intent.getBooleanExtra("editDisabled", false)
-
         if (isEditMode) {
-            toolName = intent.getStringExtra("toolName")
-            toolF = intent.getStringExtra("toolF")
-            toolS = intent.getStringExtra("toolS")
-            workpiece = intent.getStringExtra("workpiece")
-            notes = intent.getStringExtra("notes")
-            itemPos = intent.getIntExtra("item", 0)
-
-            etName.setText(toolName)
-            etF.setText(toolF)
-            etS.setText(toolS)
-            etWorkpiece.setText(workpiece)
-            etNotes.setText(notes)
-
-            // Aktywacja wszystkich pól w trybie edycji
-            listOf(etName, etF, etS, etWorkpiece, etNotes).forEach { it.isEnabled = true }
-            cbNotes.isEnabled = true
-            cbWorkpiece.isEnabled = true
-        }
-
-        // Ustawienie początkowego stanu pól na podstawie zawartości
-        updateFieldState(etNotes, cbNotes)
-        updateFieldState(etWorkpiece, cbWorkpiece)
-    }
-
-    private fun updateFieldState(editText: EditText, checkBox: CheckBox) {
-        if (editText.text.toString().isEmpty()) {
-            editText.alpha = 0.3f
-            editText.isEnabled = false
-            checkBox.isChecked = false
-        } else {
-            editText.alpha = 1f
-            editText.isEnabled = true
-            checkBox.isChecked = true
+            etName.setText(intent.getStringExtra("toolName") ?: "")
+            etF.setText(intent.getStringExtra("toolF") ?: "")
+            etS.setText(intent.getStringExtra("toolS") ?: "")
+            etWorkpiece.setText(intent.getStringExtra("workpiece") ?: "")
+            etNotes.setText(intent.getStringExtra("notes") ?: "")
         }
     }
 
     private fun setupListeners() {
-        cbWorkpiece.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                etWorkpiece.alpha = 1f
-                etWorkpiece.isEnabled = true
-            } else {
-                etWorkpiece.setText("")
-                etWorkpiece.alpha = 0.3f
-                etWorkpiece.isEnabled = false
-            }
-        }
+        btnAdd.setOnClickListener { saveAndReturn() }
+        btnClose.setOnClickListener { finish() }
+    }
 
-        cbNotes.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                etNotes.alpha = 1f
-                etNotes.isEnabled = true
-            } else {
-                handleNotesUncheck()
-            }
-        }
-
-        btnAdd.setOnClickListener {
-            saveAndReturn()
+    private fun setupMaterialSelection() {
+        // Pole materiału jest zawsze klikalne, aby otworzyć dialog
+        etWorkpiece.isFocusable = false
+        etWorkpiece.setOnClickListener {
+            showMaterialSelectionDialog()
         }
     }
 
-    private fun handleNotesUncheck() {
-        if (etNotes.text.toString().isNotEmpty()) {
-            AlertDialog.Builder(this)
-                .setMessage(getString(R.string.NotesInfo))
-                .setCancelable(false)
-                .setPositiveButton("OK") { _, _ ->
-                    etNotes.setText("")
-                    etNotes.alpha = 0.3f
-                    etNotes.isEnabled = false
-                }
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                    cbNotes.isChecked = true
-                }
-                .show()
-        } else {
-            etNotes.alpha = 0.3f
-            etNotes.isEnabled = false
+    private fun showMaterialSelectionDialog() {
+        val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+        val materials = getMaterialsList(this)
+
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.window_materials_modern, null)
+        val container = dialogView.findViewById<LinearLayout>(R.id.materialsContainer)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        materials.forEach { material ->
+            val itemView = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
+            itemView.findViewById<TextView>(R.id.materialName).text = material.name
+
+            itemView.setOnClickListener {
+                etWorkpiece.setText(material.name)
+                etWorkpiece.isFocusable = false
+                dialog.dismiss()
+            }
+            container.addView(itemView)
         }
+
+        val otherItem = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
+        otherItem.findViewById<TextView>(R.id.materialName).text = getString(R.string.other)
+        otherItem.setOnClickListener {
+            etWorkpiece.isFocusableInTouchMode = true
+            etWorkpiece.setText("")
+            etWorkpiece.requestFocus()
+            dialog.dismiss()
+        }
+        container.addView(otherItem)
+        dialog.show()
     }
 
     private fun saveAndReturn() {
-        val i = Intent(this, ActivityTools::class.java).apply {
-            putExtra("ToolName", etName.text.toString())
-            putExtra("ToolF", etF.text.toString())
-            putExtra("ToolS", etS.text.toString())
-            putExtra("ToolWorkpiece", etWorkpiece.text.toString())
-            putExtra("ToolNotes", etNotes.text.toString())
-            putExtra("editDisabled", isEditMode)
-            putExtra("item", itemPos)
-        }
-        startActivity(i)
-        finish()
-    }
+        val name = etName.text.toString().trim()
 
-    fun button_back_Clicked(view: View?) {
-        startActivity(Intent(this, ActivityTools::class.java))
-        finish()
+        // Automatyczne ustawienie materiału na "Inne", jeśli pole jest puste
+        var workpieceValue = etWorkpiece.text.toString().trim()
+        if (workpieceValue.isEmpty()) {
+            workpieceValue = getString(R.string.other)
+        }
+
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Wpisz nazwę narzędzia", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val newTool = Tool(
+            id = toolId,
+            name = name,
+            workpiece = workpieceValue,
+            f = etF.text.toString().trim(),
+            s = etS.text.toString().trim(),
+            notes = etNotes.text.toString().trim()
+        )
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = AppDatabase.getDatabase(this@ActivityAddTool)
+            if (isEditMode && toolId != 0) {
+                db.toolDao().updateTool(newTool)
+            } else {
+                db.toolDao().insertTool(newTool)
+            }
+            withContext(Dispatchers.Main) { finish() }
+        }
     }
 
     private fun hideKeyboard() {

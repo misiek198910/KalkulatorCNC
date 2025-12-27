@@ -4,11 +4,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.BillingManager
@@ -21,7 +24,6 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     private lateinit var statusTextView: TextView
     private lateinit var buyButton: Button
     private lateinit var restoreButton: Button
-    private lateinit var btnBack: ImageButton
     private lateinit var adContainerLayout: FrameLayout
     private lateinit var adContainer: FrameLayout
     private var adView: AdView? = null
@@ -31,46 +33,64 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
         enableEdgeToEdge()
         setContentView(R.layout.activity_subscription)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-
-        setupViews()
+        createViewAEdgetoEdgeForAds()
+        initUI()
         setupBilling()
     }
 
-    private fun setupViews() {
+    private fun createViewAEdgetoEdgeForAds() {
+
+        val mainRoot = findViewById<View>(R.id.main)
+        val customHeader = findViewById<View>(R.id.customHeader)
+        val bottomContainer = findViewById<View>(R.id.bottomContainer)
+        val adContainer = findViewById<View>(R.id.adContainer)
+
+        ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            mainRoot.setPadding(0, 0, 0, 0)
+
+            customHeader?.updatePadding(top = systemBars.top)
+
+            bottomContainer?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + dpToPx(60)
+            }
+
+            adContainer?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + dpToPx(8)
+            }
+
+            insets
+        }
+    }
+
+    private fun initUI() {
         statusTextView = findViewById(R.id.subscription_status_text)
         buyButton = findViewById(R.id.buy_subscription_button)
         restoreButton = findViewById(R.id.restore_purchases_button)
-        btnBack = findViewById(R.id.btnBack)
         adContainerLayout = findViewById(R.id.adContainerLayout)
         adContainer = findViewById(R.id.adContainer)
 
-        btnBack.setOnClickListener { finish() }
+        // Obsługa nowego przycisku powrotu w customHeader
+        findViewById<ImageButton>(R.id.button_back).setOnClickListener { finish() }
 
         buyButton.setOnClickListener { handleBuyButtonClick() }
 
         restoreButton.setOnClickListener {
             billingManager?.queryPurchasesAsync()
-            Toast.makeText(this, getString(R.string.status), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.buy_back), Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun setupBilling() {
-        // Korzystamy z managera, aby pobrać billingManager
         billingManager = SubscriptionManager.getInstance(this).billingManager
         billingManager?.setListener(this)
 
-        // Obserwowanie statusu Premium
         billingManager?.isPremium?.observe(this) { hasPremium ->
             updateUI(hasPremium)
             handleAds(hasPremium)
         }
 
-        // Obserwowanie szczegółów produktu (cena)
         billingManager?.productDetails?.observe(this) { details ->
             val isPremium = billingManager?.isPremium?.value ?: false
 
@@ -79,28 +99,31 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
                 val pricingPhase = offerDetails?.pricingPhases?.pricingPhaseList?.firstOrNull()
                 val price = pricingPhase?.formattedPrice ?: "..."
 
-                buyButton.text = "${getString(R.string.text_info2)} ($price)"
+                buyButton.text = "${getString(R.string.premium_required_button)} ($price)"
                 buyButton.isEnabled = true
             } else if (isPremium) {
                 buyButton.text = getString(R.string.settings_subs)
                 buyButton.isEnabled = true
             } else {
                 buyButton.isEnabled = false
+                buyButton.text = getString(R.string.load_data)
             }
         }
     }
-
     private fun updateUI(hasSubscription: Boolean) {
         if (hasSubscription) {
             statusTextView.text = getString(R.string.subs_active)
-            statusTextView.setTextColor(getColor(android.R.color.holo_green_light))
+            // Jasny zielony, dobrze widoczny na ciemnym tle
+            statusTextView.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
         } else {
             statusTextView.text = getString(R.string.subs_deactive)
-            statusTextView.setTextColor(getColor(android.R.color.darker_gray))
+            // Jasny czerwony/koralowy
+            statusTextView.setTextColor(android.graphics.Color.parseColor("#FF5252"))
         }
     }
 
     private fun handleAds(isPremium: Boolean) {
+        // Logika reklam bez zmian
         if (isPremium) {
             adView?.destroy()
             adView = null
@@ -121,23 +144,19 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
             return
         }
 
-        val newAdView = AdView(this)
-
-        // POPRAWKA: Wywołujemy funkcję getAdSize() z nawiasami
-        newAdView.setAdUnitId(adBannerId)
-        newAdView.setAdSize(getAdSize())
+        val adSize = calculateBannerAdSize()
+        val newAdView = AdView(this).apply {
+            setAdUnitId(adBannerId)
+            setAdSize(adSize)
+        }
 
         this.adView = newAdView
-
         adContainer.removeAllViews()
         adContainer.addView(newAdView)
-
-        val adRequest = AdRequest.Builder().build()
-        newAdView.loadAd(adRequest)
+        newAdView.loadAd(AdRequest.Builder().build())
     }
 
-    // Funkcja obliczająca rozmiar reklamy adaptacyjnej
-    private fun getAdSize(): AdSize {
+    private fun calculateBannerAdSize(): AdSize {
         val displayMetrics = resources.displayMetrics
         val widthPixels = if (adContainer.width > 0) adContainer.width else displayMetrics.widthPixels
         val adWidth = (widthPixels / displayMetrics.density).toInt()
@@ -148,9 +167,7 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
         val isPremium = billingManager?.isPremium?.value ?: false
 
         if (isPremium) {
-            // Zarządzanie subskrypcją w Google Play
-            val sku = BillingManager.SKU_REMOVE_ADS
-            val url = "https://play.google.com/store/account/subscriptions?sku=$sku&package=$packageName"
+            val url = "https://play.google.com/store/account/subscriptions?package=$packageName"
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } else {
             val details = billingManager?.productDetails?.value
@@ -166,14 +183,16 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     override fun onPurchaseAcknowledged() {
         runOnUiThread {
             Toast.makeText(this, getString(R.string.subs_on), Toast.LENGTH_LONG).show()
+            finish()
         }
     }
 
     override fun onPurchaseError(error: String?) {
         runOnUiThread {
-            Toast.makeText(this, "Error: $error", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Błąd: $error", Toast.LENGTH_SHORT).show()
         }
     }
+    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     override fun onPause() { adView?.pause(); super.onPause() }
     override fun onResume() { super.onResume(); adView?.resume() }

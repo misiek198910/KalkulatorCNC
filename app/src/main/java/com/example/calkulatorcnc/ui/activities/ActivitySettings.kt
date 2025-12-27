@@ -1,179 +1,169 @@
 package com.example.calkulatorcnc.ui.activities
 
-import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
+import android.util.TypedValue
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.graphics.toColorInt
+import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
-import com.example.calkulatorcnc.billing.SubscriptionStatus
 import com.example.calkulatorcnc.data.preferences.ClassPrefs
-import com.google.android.gms.ads.*
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 
 class ActivitySettings : AppCompatActivity() {
 
-    private lateinit var sp1: Spinner
-    private lateinit var sp2: Spinner
-    private lateinit var tvToolbarTitle: TextView
-    private lateinit var btnBack: ImageButton
+    private lateinit var tvCurrentSystem: TextView
+    private lateinit var tvCurrentLang: TextView
     private lateinit var adContainer: FrameLayout
     private var adView: AdView? = null
-    private lateinit var spinner1Array: Array<String>
-    private lateinit var spinner2Array: Array<String>
-    private var isSpinner1Initialized = true
-    private var isSpinner2Initialized = true
+    private val prefs = ClassPrefs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
-
-        setupInsets()
+        createViewAEdgetoEdgeForAds()
         initViews()
-        setupAds() // Logika banerów zależna od Premium
-        setupSpinners()
+        setupAds()
+        updateStatusTexts()
 
-        onBackPressedDispatcher.addCallback(this) {
-            finish()
+        onBackPressedDispatcher.addCallback(this) { finish() }
+    }
+    private fun createViewAEdgetoEdgeForAds(){
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
         }
     }
 
     private fun initViews() {
-        sp1 = findViewById(R.id.spinner1)
-        sp2 = findViewById(R.id.spinner2)
-        btnBack = findViewById(R.id.button_back)
-        tvToolbarTitle = findViewById(R.id.toolbar_title)
+        tvCurrentSystem = findViewById(R.id.tvCurrentSystem)
+        tvCurrentLang = findViewById(R.id.tvCurrentLang)
         adContainer = findViewById(R.id.adContainer)
 
-        tvToolbarTitle.setText(R.string.main_button6)
+        findViewById<View>(R.id.button_back).setOnClickListener { finish() }
+        findViewById<View>(R.id.card_system).setOnClickListener { showSystemDialog() }
+        findViewById<View>(R.id.card_language).setOnClickListener { showLanguageDialog() }
+        findViewById<View>(R.id.card_btn2).setOnClickListener { startActivity(Intent(this, ActivityApps::class.java)) }
+        findViewById<View>(R.id.card_btn3).setOnClickListener { openMarketPage(packageName) }
+        findViewById<View>(R.id.card_btn4).setOnClickListener {
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buycoffee.to/mivs/MojaParafia"))
+            startActivity(browserIntent)
+        }
+        findViewById<View>(R.id.card_btn5).setOnClickListener { startActivity(Intent(this, ActivitySubscription::class.java)) }
+    }
 
-        btnBack.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+    private fun updateStatusTexts() {
+        // Pokazywanie aktualnego ustawienia pod główną nazwą kafli
+        val sysPos = prefs.loadPrefInt(this, "calcsys_data")
+        val sysArray = resources.getStringArray(R.array.spinner1_items)
+        tvCurrentSystem.text = sysArray.getOrElse(sysPos) { "" }
+
+        val langPos = prefs.loadPrefInt(this, "language_data")
+        val langArray = resources.getStringArray(R.array.spinner2_items)
+        tvCurrentLang.text = langArray.getOrElse(langPos) { "" }
+    }
+
+    private fun showSystemDialog() {
+        val options = resources.getStringArray(R.array.spinner1_items)
+        val current = prefs.loadPrefInt(this, "calcsys_data")
+        createCustomSelectionDialog(getString(R.string.calc_system), options, current) { which ->
+            prefs.savePrefInt(this, "calcsys_data", which)
+            updateStatusTexts()
         }
     }
 
-    private fun setupAds() {
-        MobileAds.initialize(this)
-        val subManager = SubscriptionManager.getInstance(this)
+    private fun showLanguageDialog() {
+        val options = resources.getStringArray(R.array.spinner2_items)
+        val current = prefs.loadPrefInt(this, "language_data")
+        createCustomSelectionDialog(getString(R.string.language), options, current) { which ->
+            prefs.savePrefInt(this, "language_data", which)
+            val iso = if (which == 0) "pl" else "en"
+            val appLocale = LocaleListCompat.forLanguageTags(iso)
+            AppCompatDelegate.setApplicationLocales(appLocale)
+        }
+    }
 
-        // Obserwowanie statusu Premium dla banera
-        subManager.isPremium.observe(this) { isPremium ->
-            if (isPremium) {
-                // UKRYWAMY BANER DLA PREMIUM
-                adContainer.visibility = View.GONE
-                adContainer.removeAllViews()
-                adView?.destroy()
-                adView = null
-            } else {
-                // POKAZUJEMY BANER DLA NON-PREMIUM
-                val screenHeightDp = resources.configuration.screenHeightDp
-                if (screenHeightDp < 400) {
-                    adContainer.visibility = View.GONE
-                } else {
-                    adContainer.visibility = View.VISIBLE
-                    if (adContainer.childCount == 0) {
-                        val newAdView = AdView(this).apply {
-                            setAdSize(AdSize.BANNER)
-                            adUnitId = BuildConfig.ADMOB_BANNER_ID
+    private fun createCustomSelectionDialog(title: String, options: Array<String>, selectedIndex: Int, onSelected: (Int) -> Unit) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_selection_modern, null)
+        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+        dialogView.findViewById<TextView>(R.id.dialogTitle).text = title
+        val container = dialogView.findViewById<LinearLayout>(R.id.optionsContainer)
+
+        options.forEachIndexed { index, option ->
+            val tvOption = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dpToPx(50)
+                )
+                text = option
+                gravity = Gravity.CENTER_VERTICAL or Gravity.START
+                setPaddingRelative(dpToPx(16), 0, dpToPx(16), 0)
+                textSize = 18f
+
+                        // Stylizacja zaznaczenia
+                        if (index == selectedIndex) {
+                            setTextColor("#FF9800".toColorInt())
+                            setTypeface(null, Typeface.BOLD)
+                            setBackgroundResource(R.drawable.bg_search_input)
+                        } else {
+                            setTextColor(Color.WHITE)
+                            setTypeface(null, Typeface.NORMAL)
+                            // Standardowe tło z efektem kliknięcia
+                            val outValue = TypedValue()
+                            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
+                            setBackgroundResource(outValue.resourceId)
                         }
-                        adView = newAdView
-                        adContainer.addView(newAdView)
-                        newAdView.loadAd(AdRequest.Builder().build())
-                    }
+
+                setOnClickListener {
+                    onSelected(index)
+                    dialog.dismiss()
                 }
             }
-        }
-    }
+            container.addView(tvOption)
 
-    private fun setupSpinners() {
-        spinner1Array = resources.getStringArray(R.array.spinner1_items)
-        spinner2Array = resources.getStringArray(R.array.spinner2_items)
-
-        // Adapter dla systemu miar
-        val adapter1 = ArrayAdapter(this, R.layout.spinner_item, spinner1Array)
-        adapter1.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        sp1.adapter = adapter1
-
-        // Adapter dla języka
-        val adapter2 = ArrayAdapter(this, R.layout.spinner_item, spinner2Array)
-        adapter2.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        sp2.adapter = adapter2
-
-        // Logika wyboru systemu miar
-        sp1.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (isSpinner1Initialized) {
-                    isSpinner1Initialized = false
-                } else {
-                    ClassPrefs().savePrefInt(this@ActivitySettings, "calcsys_data", position)
+            if (index < options.size - 1) {
+                val divider = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+                    setBackgroundColor("#1AFFFFFF".toColorInt()) // Bardzo delikatna biel
                 }
+                container.addView(divider)
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Logika wyboru języka
-        sp2.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (isSpinner2Initialized) {
-                    isSpinner2Initialized = false
-                } else {
-                    val pref = ClassPrefs()
-                    val iso = if (position == 0) {
-                        pref.savePrefInt(this@ActivitySettings, "language_data", 0)
-                        "pl"
-                    } else {
-                        pref.savePrefInt(this@ActivitySettings, "language_data", 1)
-                        "en"
-                    }
-                    val appLocale = LocaleListCompat.forLanguageTags(iso)
-                    AppCompatDelegate.setApplicationLocales(appLocale)
-                }
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        // Ustawienie aktualnej selekcji języka
-        val currentLangIdx = ClassPrefs().loadPrefInt(this, "language_data")
-        sp2.setSelection(currentLangIdx)
-    }
-
-    fun settings_button1_Clicked(view: View?) {
-        startActivity(Intent(this, ActivityInformation::class.java))
-    }
-
-    fun settings_button2_Clicked(view: View?) {
-        startActivity(Intent(this, ActivityApps::class.java))
-    }
-
-    fun settings_button3_Clicked(view: View?) {
-        openMarketPage(packageName)
-    }
-
-    fun settings_button4_Clicked(view: View?) {
-        startActivity(Intent(this, ActivityKofi::class.java))
-    }
-
-    fun settings_button5_Clicked(view: View?) {
-        startActivity(Intent(this, ActivitySubscription::class.java))
+        dialogView.findViewById<Button>(R.id.btnCancel).setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun openMarketPage(appId: String) {
-        val uri = Uri.parse("market://details?id=$appId")
+        val uri = "market://details?id=$appId".toUri()
         val intent = Intent(Intent.ACTION_VIEW, uri)
         try {
             startActivity(intent)
@@ -181,11 +171,28 @@ class ActivitySettings : AppCompatActivity() {
             Toast.makeText(this, R.string.error, Toast.LENGTH_LONG).show()
         }
     }
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+    private fun setupAds() {
+        MobileAds.initialize(this)
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+                adContainer.visibility = View.GONE
+                adView?.destroy()
+                adView = null
+            } else {
+                adContainer.visibility = View.VISIBLE
+                if (adContainer.childCount == 0) {
+                    adView = AdView(this).apply {
+                        setAdSize(AdSize.BANNER)
+                        adUnitId = BuildConfig.ADMOB_BANNER_ID
+                        adContainer.addView(this)
+                        loadAd(AdRequest.Builder().build())
+                    }
+                }
+            }
         }
+    }
+    private fun dpToPx(dp: Int): Int {
+        return (dp * resources.displayMetrics.density).toInt()
     }
 }
