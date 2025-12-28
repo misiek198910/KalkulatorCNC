@@ -5,7 +5,14 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.*
+import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -13,9 +20,10 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
@@ -23,8 +31,11 @@ import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.entity.Tool
 import com.example.calkulatorcnc.ui.adapters.ToolAdapter
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.gms.ads.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -49,33 +60,33 @@ class ActivityTools : AppCompatActivity() {
         db = AppDatabase.getDatabase(this)
         createViewAEdgetoEdgeForAds()
         initViews()
-        setupAds()
         setupDataObservation()
         setupSearchLogic()
     }
 
-    private fun createViewAEdgetoEdgeForAds(){
+    private fun createViewAEdgetoEdgeForAds() {
+        val mainRoot = findViewById<View>(R.id.main)
         val customHeader = findViewById<LinearLayout>(R.id.customHeader)
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
         val adContainer = findViewById<FrameLayout>(R.id.adContainer)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+
+        ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(0, 0, 0, 0)
 
-            customHeader.setPadding(
-                customHeader.paddingLeft,
-                systemBars.top,
-                customHeader.paddingRight,
-                customHeader.paddingBottom
-            )
+            mainRoot.setPadding(0, 0, 0, 0)
+            customHeader?.updatePadding(top = systemBars.top)
 
-            adContainer.setPadding(
-                adContainer.paddingLeft,
-                adContainer.paddingTop,
-                adContainer.paddingRight,
-                systemBars.bottom
-            )
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
+            }
 
             insets
+        }
+
+        adContainer?.post {
+            setupAds()
         }
     }
 
@@ -173,24 +184,47 @@ class ActivityTools : AppCompatActivity() {
 
     private fun setupAds() {
         val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
+
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             if (isPremium) {
+                // 1. Logika dla użytkownika PREMIUM
                 adContainer.visibility = View.GONE
+                adContainer.removeAllViews() // Fizycznie usuwamy widoki
                 adView?.destroy()
                 adView = null
             } else {
-                adContainer.visibility = View.VISIBLE
-                if (adView == null) {
-                    MobileAds.initialize(this)
-                    adView = AdView(this).apply {
-                        setAdSize(AdSize.BANNER)
-                        adUnitId = BuildConfig.ADMOB_BANNER_ID
-                        adContainer.addView(this)
-                        loadAd(AdRequest.Builder().build())
+                // 2. Logika dla darmowej wersji
+                val screenHeightDp = resources.configuration.screenHeightDp
+                if (screenHeightDp < 400) {
+                    adContainer.visibility = View.GONE
+                } else {
+                    adContainer.visibility = View.VISIBLE
+                    if (adView == null) {
+                        // Tworzymy nową reklamę adaptacyjną
+                        val newAdView = AdView(this)
+                        adContainer.addView(newAdView)
+
+                        val adSize = getAdSize(adContainer)
+                        newAdView.setAdSize(adSize)
+                        newAdView.adUnitId = BuildConfig.ADMOB_BANNER_ID
+
+                        adView = newAdView
+                        newAdView.loadAd(AdRequest.Builder().build())
                     }
                 }
             }
         }
+    }
+
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
+        val displayMetrics = resources.displayMetrics
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 
     private fun showPremiumRequiredDialog() {

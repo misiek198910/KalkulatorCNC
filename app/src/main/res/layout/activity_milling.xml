@@ -10,9 +10,14 @@
 
     <View
         android:id="@+id/view_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/aplication_new_blue" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.85"
+        android:background="@color/aplication_new_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/customHeader"
@@ -146,7 +151,7 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        app:layout_constraintBottom_toTopOf="@id/adContainer"
+        app:layout_constraintBottom_toTopOf="@id/adContainerLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -185,12 +190,21 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/adContainer"
+        android:id="@+id/adContainerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#1A000000"
         android:minHeight="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

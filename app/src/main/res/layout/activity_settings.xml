@@ -10,9 +10,14 @@
 
     <View
         android:id="@+id/view_overlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/aplication_new_blue" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.85"
+        android:background="@color/aplication_new_blue"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/customHeader"
@@ -23,6 +28,8 @@
         android:orientation="horizontal"
         android:paddingHorizontal="12dp"
         android:paddingVertical="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
@@ -55,7 +62,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintBottom_toTopOf="@+id/adContainer"
+        app:layout_constraintBottom_toTopOf="@+id/adContainerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/customHeader">
 
         <LinearLayout
@@ -84,16 +93,36 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:importantForAccessibility="no"
                         android:orientation="vertical">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/calc"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/calc"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/calc_system" android:textColor="@color/white" android:textStyle="bold" android:gravity="center"/>
-                        <TextView android:id="@+id/tvCurrentSystem" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#BDBDBD" android:textSize="12sp" tools:text="Metryczny"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/calc_system"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCurrentSystem"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#BDBDBD"
+                            android:textSize="12sp"
+                            tools:text="Metryczny" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -111,16 +140,35 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:importantForAccessibility="no"
                         android:orientation="vertical">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/language"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/language"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/language" android:textColor="@color/white" android:textStyle="bold" />
-                        <TextView android:id="@+id/tvCurrentLang" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#BDBDBD" android:textSize="12sp" tools:text="Polski"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:text="@string/language"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCurrentLang"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#BDBDBD"
+                            android:textSize="12sp"
+                            tools:text="Polski" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -137,6 +185,7 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -144,9 +193,21 @@
                         android:importantForAccessibility="no"
                         android:orientation="vertical"
                         tools:ignore="UseCompoundDrawables">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/apps"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/apps"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/settings_button2" android:textColor="@color/white" android:gravity="center" android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/settings_button2"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -164,15 +225,28 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
                         tools:ignore="UseCompoundDrawables">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/rate"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/rate"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/settings_button3" android:textColor="@color/white" android:gravity="center" android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/settings_button3"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -190,15 +264,28 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
                         tools:ignore="UseCompoundDrawables">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/coffe"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/coffe"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/settings_button4" android:textColor="@color/white" android:gravity="center" android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/settings_button4"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -216,15 +303,28 @@
                     app:cardCornerRadius="16dp"
                     app:strokeColor="#33FFFFFF"
                     app:strokeWidth="1dp">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:gravity="center"
                         android:orientation="vertical"
                         tools:ignore="UseCompoundDrawables">
-                        <ImageView android:layout_width="50dp" android:layout_height="50dp" android:src="@drawable/ads"
+
+                        <ImageView
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:src="@drawable/ads"
                             tools:ignore="ContentDescription" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/settings_button5" android:textColor="@color/white" android:gravity="center" android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:gravity="center"
+                            android:text="@string/settings_button5"
+                            android:textColor="@color/white"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -233,10 +333,21 @@
     </ScrollView>
 
     <FrameLayout
-        android:id="@+id/adContainer"
+        android:id="@+id/adContainerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#1A000000"
         android:minHeight="50dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

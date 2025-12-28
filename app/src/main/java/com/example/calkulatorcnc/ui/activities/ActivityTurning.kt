@@ -110,23 +110,43 @@ class ActivityTourning : AppCompatActivity() {
 
     private fun setupAds() {
         val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             if (isPremium) {
+                // 1. CZYSZCZENIE: Ukrywamy i niszczymy reklamę
                 adContainer.visibility = View.GONE
+                adContainer.removeAllViews()
                 adView?.destroy()
                 adView = null
             } else if (resources.configuration.screenHeightDp >= 400) {
+                // 2. WYŚWIETLANIE: Tylko jeśli nie ma aktywnej subskrypcji
                 adContainer.visibility = View.VISIBLE
+
                 if (adView == null) {
-                    adView = AdView(this).apply {
-                        setAdSize(AdSize.BANNER)
-                        adUnitId = BuildConfig.ADMOB_BANNER_ID
-                        adContainer.addView(this)
-                        loadAd(AdRequest.Builder().build())
-                    }
+                    val newAdView = AdView(this)
+                    adContainer.addView(newAdView)
+
+                    // Ustawiamy dynamiczny rozmiar zamiast AdSize.BANNER
+                    val adSize = getAdSize(adContainer)
+                    newAdView.setAdSize(adSize)
+                    newAdView.adUnitId = BuildConfig.ADMOB_BANNER_ID
+
+                    adView = newAdView
+                    newAdView.loadAd(AdRequest.Builder().build())
                 }
             }
         }
+    }
+
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
+        val displayMetrics = resources.displayMetrics
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 
     private fun setupSpinner() {

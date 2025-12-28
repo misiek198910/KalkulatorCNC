@@ -5,8 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
-    android:padding="16dp">
+    android:background="@drawable/background">
 
     <View
         android:id="@+id/view"
@@ -19,11 +18,15 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ScrollView
+        android:id="@+id/toolScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
         android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -35,8 +38,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                 android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -78,8 +81,8 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -114,8 +117,8 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginStart="6dp"
+                    android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -131,8 +134,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/f_hint"
-                        app:boxStrokeColor="@color/button_dark_blue_1"
                         android:textColorHint="@color/textColor_hint"
+                        app:boxStrokeColor="@color/button_dark_blue_1"
                         app:hintTextColor="@color/white">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -151,8 +154,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                 android:layout_marginBottom="24dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -168,8 +171,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/material"
-                    app:boxStrokeColor="@color/button_dark_blue_1"
                     android:textColorHint="@color/textColor_hint"
+                    app:boxStrokeColor="@color/button_dark_blue_1"
                     app:hintTextColor="@color/white">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -190,8 +193,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
                 android:hint="@string/notes_hint"
-                app:boxStrokeColor="@color/button_dark_blue_1"
                 android:textColorHint="@color/textColor_hint"
+                app:boxStrokeColor="@color/button_dark_blue_1"
                 app:hintTextColor="@color/white">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -216,15 +219,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@+id/adContainerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <Button
             android:id="@+id/button1"
             style="@style/button_style"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="8dp"
+            android:layout_weight="1"
             android:background="@drawable/button_style"
             android:text="@string/save" />
 
@@ -233,10 +238,28 @@
             style="@style/button_style"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:background="@drawable/button_style"
             android:text="@string/close" />
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/adContainerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#1A000000"
+        android:minHeight="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

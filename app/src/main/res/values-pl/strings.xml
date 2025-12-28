@@ -7,6 +7,7 @@
     <string name="main_button4">Tabele pasowania</string>
     <string name="main_button5">Kody CNC</string>
     <string name="main_button6">Ustawienia</string>
+    <string name="news">Nowości</string>
     <!--  Settings-->
     <string name="language">Język aplikacjii:</string>
     <string name="settings_button1">Informacje</string>

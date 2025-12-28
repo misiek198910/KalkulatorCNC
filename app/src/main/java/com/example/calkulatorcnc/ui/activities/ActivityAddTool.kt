@@ -22,13 +22,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import getMaterialsList
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
+import android.view.ViewGroup
+import com.example.calkulatorcnc.BuildConfig
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 
 class ActivityAddTool : AppCompatActivity() {
-
+    private var adView: AdView? = null
     private var toolId: Int = 0
     private lateinit var mainLayout: ConstraintLayout
     private lateinit var btnAdd: Button
-
     private lateinit var btnClose: Button
     private lateinit var etWorkpiece: EditText
     private lateinit var etName: EditText
@@ -43,6 +50,7 @@ class ActivityAddTool : AppCompatActivity() {
         enableEdgeToEdge()
 
         createViewAEdgetoEdgeForAds()
+        MobileAds.initialize(this)
         initViews()
 
         toolId = intent.getIntExtra("toolId", 0)
@@ -55,13 +63,82 @@ class ActivityAddTool : AppCompatActivity() {
         mainLayout.setOnClickListener { hideKeyboard() }
     }
 
-    private fun createViewAEdgetoEdgeForAds(){
+    private fun createViewAEdgetoEdgeForAds() {
         setContentView(R.layout.activity_add_tool)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+
+        val mainRoot = findViewById<View>(R.id.main)
+        val toolScrollView = findViewById<ScrollView>(R.id.toolScrollView)
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+
+        ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+
+            mainRoot.setPadding(0, 0, 0, 0)
+
+            toolScrollView?.updatePadding(
+                top = systemBars.top + (resources.displayMetrics.density * 8).toInt()
+            )
+
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
+            }
+
             insets
         }
+
+        adContainer?.post {
+            setupAds()
+        }
+    }
+
+    private fun setupAds() {
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
+
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+
+                adContainerLayout?.visibility = View.GONE
+                adContainer.removeAllViews()
+                adView?.destroy()
+                adView = null
+            } else {
+
+                val screenHeightDp = resources.configuration.screenHeightDp
+                if (screenHeightDp < 400) {
+                    adContainerLayout?.visibility = View.GONE
+                } else {
+                    adContainerLayout?.visibility = View.VISIBLE
+
+                    if (adView == null) {
+                        val newAdView = AdView(this).apply {
+                            adUnitId = BuildConfig.ADMOB_BANNER_ID
+
+                            setAdSize(getAdSize(adContainer))
+                        }
+
+                        adView = newAdView
+                        adContainer.removeAllViews()
+                        adContainer.addView(newAdView)
+                        newAdView.loadAd(AdRequest.Builder().build())
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
+        val displayMetrics = resources.displayMetrics
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 
     private fun initViews() {

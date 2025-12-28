@@ -26,6 +26,8 @@
         android:background="@color/aplication_new_blue"
         android:orientation="vertical"
         android:paddingBottom="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.appcompat.widget.Toolbar
@@ -48,14 +50,16 @@
                     android:layout_marginStart="8dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@drawable/arrow_back_white_24"
-                    app:tint="@color/white" />
+                    app:tint="@color/white"
+                    tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -69,7 +73,8 @@
                         android:layout_width="50dp"
                         android:layout_height="50dp"
                         android:layout_marginStart="12dp"
-                        android:src="@drawable/turning" />
+                        android:src="@drawable/turning"
+                        tools:ignore="ContentDescription" />
                 </LinearLayout>
             </RelativeLayout>
         </androidx.appcompat.widget.Toolbar>
@@ -96,8 +101,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:backgroundTint="@color/white"
+                android:paddingStart="12dp"
                 android:popupBackground="@drawable/bg_spinner_popup_solid"
-                android:paddingStart="12dp" />
+                tools:ignore="RtlSymmetry" />
         </FrameLayout>
     </LinearLayout>
 
@@ -108,7 +114,10 @@
         android:fillViewport="true"
         android:paddingHorizontal="16dp"
         app:layout_constraintBottom_toTopOf="@+id/layout"
-        app:layout_constraintTop_toBottomOf="@id/customHeader">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/customHeader"
+        tools:ignore="SpeakableTextPresentCheck">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -142,7 +151,7 @@
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        app:layout_constraintBottom_toTopOf="@id/adContainer"
+        app:layout_constraintBottom_toTopOf="@id/adContainerLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
@@ -181,10 +190,21 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/adContainer"
+        android:id="@+id/adContainerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="#1A000000"
         android:minHeight="50dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

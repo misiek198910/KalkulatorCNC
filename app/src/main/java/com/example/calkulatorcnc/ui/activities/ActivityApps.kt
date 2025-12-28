@@ -16,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
@@ -49,20 +51,38 @@ class ActivityApps : AppCompatActivity() {
         setupAppList()
     }
 
-    private fun createViewAEdgetoEdgeForAds(){
+    private fun createViewAEdgetoEdgeForAds() {
+
+        enableEdgeToEdge()
         setContentView(R.layout.activity_apps)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-        MobileAds.initialize(this)
+
+        val mainRoot = findViewById<View>(R.id.main)
+        val customHeader = findViewById<LinearLayout>(R.id.customHeader)
         adContainerLayout = findViewById(R.id.adContainerLayout)
         adContainer = findViewById(R.id.adContainer)
 
-        // Logika Premium
+        ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            mainRoot.setPadding(0, 0, 0, 0)
+            customHeader?.updatePadding(top = systemBars.top)
+
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom
+            }
+
+            insets
+        }
+
+        MobileAds.initialize(this)
+
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             handleAds(isPremium)
+
+            if (!isPremium) {
+                adContainerLayout?.post {
+                    setupAds()
+                }
+            }
         }
     }
 
@@ -169,30 +189,58 @@ class ActivityApps : AppCompatActivity() {
         } else {
             if (adView == null) {
                 adContainerLayout.visibility = View.VISIBLE
-                loadBannerAd()
+                setupAds()
             }
         }
     }
 
-    private fun loadBannerAd() {
+    private fun setupAds() {
         val adBannerId = BuildConfig.ADMOB_BANNER_ID
+
         if (adBannerId == "BRAK_ID" || adBannerId.isEmpty()) {
-            adContainerLayout.visibility = View.GONE
+            findViewById<View>(R.id.adContainerLayout)?.visibility = View.GONE
             return
         }
 
-        adView = AdView(this).apply {
-            adUnitId = adBannerId
-            setAdSize(calculateAdSize())
-            adContainer.removeAllViews()
-            adContainer.addView(this)
-            loadAd(AdRequest.Builder().build())
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout) ?: return
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
+
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+                adContainerLayout.visibility = View.GONE
+                adContainer.removeAllViews()
+                adView?.destroy()
+                adView = null
+            } else {
+                if (resources.configuration.screenHeightDp < 400) {
+                    adContainerLayout.visibility = View.GONE
+                } else {
+                    adContainerLayout.visibility = View.VISIBLE
+
+                    if (adView == null) {
+                        val newAdView = AdView(this).apply {
+                            adUnitId = adBannerId
+                            setAdSize(getAdSize(adContainer))
+                        }
+
+                        adView = newAdView
+                        adContainer.removeAllViews()
+                        adContainer.addView(newAdView)
+                        newAdView.loadAd(AdRequest.Builder().build())
+                    }
+                }
+            }
         }
     }
 
-    private fun calculateAdSize(): AdSize {
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
         val displayMetrics = resources.displayMetrics
-        val adWidth = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 

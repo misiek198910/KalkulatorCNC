@@ -49,14 +49,14 @@ class ActivityTables : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this) { finish() }
     }
 
-    private fun createViewAEdgetoEdgeForAds(){
+    private fun createViewAEdgetoEdgeForAds() {
+        // 1. Włączamy tryb Edge-to-Edge i ustawiamy widok
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_tables)
 
         val mainRoot = findViewById<View>(R.id.main)
         val customHeader = findViewById<LinearLayout>(R.id.customHeader)
-        val bottomBar = findViewById<LinearLayout>(R.id.bottom_bar)
-        val leftPanel = findViewById<LinearLayout>(R.id.left_panel)
-        val rightPanel = findViewById<LinearLayout>(R.id.right_panel)
-        val layoutBack = findViewById<LinearLayout>(R.id.layout_back)
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
         val adContainer = findViewById<FrameLayout>(R.id.adContainer)
 
         ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
@@ -65,23 +65,16 @@ class ActivityTables : AppCompatActivity() {
             mainRoot.setPadding(0, 0, 0, 0)
 
             customHeader?.updatePadding(top = systemBars.top)
-            bottomBar?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom
-            }
 
-            leftPanel?.updatePadding(top = systemBars.top, left = systemBars.left)
-            rightPanel?.updatePadding(top = systemBars.top, right = systemBars.right)
-
-
-            layoutBack?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom
-            }
-            adContainer?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
             }
 
             insets
         }
+
         adContainer?.post {
             setupAds()
         }
@@ -231,27 +224,50 @@ class ActivityTables : AppCompatActivity() {
     private fun setupAds() {
         val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
 
-        // Obserwuj stan Premium przez SubscriptionManager
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             if (isPremium) {
-                // Jeśli Premium: Ukryj kontener i zniszcz AdView
+                // 1. Logika Premium: Czyścimy wszystko
                 adContainer.visibility = View.GONE
+                adContainer.removeAllViews()
                 adView?.destroy()
                 adView = null
             } else {
-                // Jeśli darmowa: Pokaż kontener i załaduj reklamę
-                adContainer.visibility = View.VISIBLE
-                if (adView == null) {
-                    adView = AdView(this).apply {
-                        setAdSize(AdSize.BANNER)
-                        adUnitId = BuildConfig.ADMOB_BANNER_ID
-                        adContainer.addView(this)
-                        loadAd(AdRequest.Builder().build())
+                // 2. Logika Darmowa: Sprawdzamy wysokość ekranu (zgodnie z Twoim standardem)
+                val screenHeightDp = resources.configuration.screenHeightDp
+                if (screenHeightDp < 400) {
+                    adContainer.visibility = View.GONE
+                } else {
+                    adContainer.visibility = View.VISIBLE
+
+                    // Ładujemy reklamę tylko jeśli jeszcze nie istnieje
+                    if (adView == null) {
+                        val newAdView = AdView(this)
+                        adContainer.addView(newAdView)
+
+                        // KLUCZ: Dynamiczne obliczanie rozmiaru adaptacyjnego
+                        val adSize = getAdSize(adContainer)
+                        newAdView.setAdSize(adSize)
+                        newAdView.adUnitId = BuildConfig.ADMOB_BANNER_ID
+
+                        adView = newAdView
+                        newAdView.loadAd(AdRequest.Builder().build())
                     }
                 }
             }
         }
     }
+
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
+        val displayMetrics = resources.displayMetrics
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+    }
+
 
     override fun onPause() {
         adView?.pause()

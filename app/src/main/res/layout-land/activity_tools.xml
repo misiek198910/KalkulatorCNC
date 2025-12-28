@@ -90,16 +90,26 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/adContainer"
+        app:layout_constraintBottom_toTopOf="@+id/adContainerLayout"
         app:layout_constraintTop_toBottomOf="@id/customHeader" />
 
     <FrameLayout
-        android:id="@+id/adContainer"
+        android:id="@+id/adContainerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#33000000"
+        android:background="#1A000000"
         android:minHeight="50dp"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_add_tool"
@@ -112,7 +122,7 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="@null"
         app:borderWidth="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/adContainer"
+        app:layout_constraintBottom_toTopOf="@+id/adContainerLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:tint="@color/white"
         tools:ignore="ClassNameCheck" />

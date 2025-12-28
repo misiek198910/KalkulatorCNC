@@ -39,25 +39,21 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     }
 
     private fun createViewAEdgetoEdgeForAds() {
-
         val mainRoot = findViewById<View>(R.id.main)
         val customHeader = findViewById<View>(R.id.customHeader)
-        val bottomContainer = findViewById<View>(R.id.bottomContainer)
-        val adContainer = findViewById<View>(R.id.adContainer)
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout) // Zmieniamy na Layout
 
         ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
             mainRoot.setPadding(0, 0, 0, 0)
-
             customHeader?.updatePadding(top = systemBars.top)
 
-            bottomContainer?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom + dpToPx(60)
-            }
-
-            adContainer?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom + dpToPx(8)
+            // KLUCZ: Margines ustawiamy na CAŁY kontener reklamy (rodzica)
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
             }
 
             insets
@@ -123,43 +119,77 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     }
 
     private fun handleAds(isPremium: Boolean) {
-        // Logika reklam bez zmian
         if (isPremium) {
             adView?.destroy()
             adView = null
             adContainer.removeAllViews()
             adContainerLayout.visibility = View.GONE
         } else {
-            if (adView == null) {
-                adContainerLayout.visibility = View.VISIBLE
-                loadBannerAd()
+            adContainerLayout.visibility = View.VISIBLE
+            // Używamy post, aby upewnić się, że szerokość kontenera jest już obliczona
+            adContainer.post {
+                if (adView == null) {
+                    setupAds()
+                }
             }
         }
     }
 
-    private fun loadBannerAd() {
+    private fun setupAds() {
         val adBannerId = BuildConfig.ADMOB_BANNER_ID
+
+        // 1. Zabezpieczenie przed brakiem ID
         if (adBannerId == "BRAK_ID" || adBannerId.isEmpty()) {
-            adContainerLayout.visibility = View.GONE
+            findViewById<View>(R.id.adContainerLayout)?.visibility = View.GONE
             return
         }
 
-        val adSize = calculateBannerAdSize()
-        val newAdView = AdView(this).apply {
-            setAdUnitId(adBannerId)
-            setAdSize(adSize)
-        }
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout) ?: return
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
 
-        this.adView = newAdView
-        adContainer.removeAllViews()
-        adContainer.addView(newAdView)
-        newAdView.loadAd(AdRequest.Builder().build())
+        // 2. Obserwacja stanu subskrypcji
+        SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
+            if (isPremium) {
+                // Logika PREMIUM: czyścimy i usuwamy wszystko
+                adContainerLayout.visibility = View.GONE
+                adContainer.removeAllViews()
+                adView?.destroy()
+                adView = null
+            } else {
+                // Logika FREE: sprawdzamy wysokość ekranu
+                if (resources.configuration.screenHeightDp < 400) {
+                    adContainerLayout.visibility = View.GONE
+                } else {
+                    adContainerLayout.visibility = View.VISIBLE
+
+                    // Ładujemy reklamę tylko jeśli jeszcze nie istnieje
+                    if (adView == null) {
+                        // Wywołujemy dopasowaną funkcję rozmiaru
+                        val adSize = getAdSize(adContainer)
+
+                        val newAdView = AdView(this).apply {
+                            setAdUnitId(adBannerId)
+                            setAdSize(adSize)
+                        }
+
+                        adView = newAdView
+                        adContainer.removeAllViews() // Czyścimy na wypadek duplikacji
+                        adContainer.addView(newAdView)
+                        newAdView.loadAd(AdRequest.Builder().build())
+                    }
+                }
+            }
+        }
     }
 
-    private fun calculateBannerAdSize(): AdSize {
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
         val displayMetrics = resources.displayMetrics
-        val widthPixels = if (adContainer.width > 0) adContainer.width else displayMetrics.widthPixels
-        val adWidth = (widthPixels / displayMetrics.density).toInt()
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 

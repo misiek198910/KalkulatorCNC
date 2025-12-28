@@ -14,7 +14,9 @@ playAds = "23.6.0"
 ump = "3.1.0"
 gson = "2.11.0"
 ksp = "2.0.21-1.0.28"
+firebaseBom = "33.7.0"
 googleServices = "4.4.2"
+glide = "4.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -23,6 +25,13 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "j
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
+# Firebase BOM - zarządza wersjami wszystkich usług Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+# Firestore
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+# Opcjonalnie dodaj Analytics (wymagane przez niektóre funkcje Firebase)
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 # Billing
 billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 

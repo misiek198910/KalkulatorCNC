@@ -21,6 +21,8 @@ import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isEmpty
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
@@ -64,12 +66,33 @@ class ActivityMilling : AppCompatActivity() {
         calcSys = if (ClassPrefs().loadPrefInt(this, "calcsys_data") == 1) 12 else 1000
     }
 
-    private fun createViewAEdgetoEdgeForAds(){
+    private fun createViewAEdgetoEdgeForAds() {
+        enableEdgeToEdge() // Obowiązkowe dla efektu Edge-to-Edge
         setContentView(R.layout.activity_milling)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+
+        val mainRoot = findViewById<View>(R.id.main)
+        val customHeader = findViewById<LinearLayout>(R.id.customHeader)
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+
+        ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+
+            mainRoot.setPadding(0, 0, 0, 0)
+
+            customHeader?.updatePadding(top = systemBars.top)
+
+            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom
+                leftMargin = systemBars.left
+                rightMargin = systemBars.right
+            }
+
             insets
+        }
+
+        adContainer?.post {
+            setupAds()
         }
     }
 
@@ -88,24 +111,55 @@ class ActivityMilling : AppCompatActivity() {
     }
 
     private fun setupAds() {
-        val adContainer = findViewById<FrameLayout>(R.id.adContainer)
+        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
+        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
+
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             if (isPremium) {
+                // 1. Logika PREMIUM: Czyścimy i niszczymy reklamę
+                // Ukrywamy adContainerLayout, aby odzyskać miejsce na ekranie
+                adContainerLayout?.visibility = View.GONE
                 adContainer.visibility = View.GONE
+                adContainer.removeAllViews()
                 adView?.destroy()
                 adView = null
-            } else if (resources.configuration.screenHeightDp >= 400) {
-                adContainer.visibility = View.VISIBLE
-                if (adView == null) {
-                    adView = AdView(this).apply {
-                        setAdSize(AdSize.BANNER)
-                        adUnitId = BuildConfig.ADMOB_BANNER_ID
-                        adContainer.addView(this)
-                        loadAd(AdRequest.Builder().build())
+            } else {
+                // 2. Logika FREE: Sprawdzamy wysokość ekranu (min. 400dp)
+                val screenHeightDp = resources.configuration.screenHeightDp
+                if (screenHeightDp < 400) {
+                    adContainerLayout?.visibility = View.GONE
+                    adContainer.visibility = View.GONE
+                } else {
+                    adContainerLayout?.visibility = View.VISIBLE
+                    adContainer.visibility = View.VISIBLE
+
+                    // Ładujemy reklamę tylko jeśli jeszcze nie istnieje
+                    if (adView == null) {
+                        val newAdView = AdView(this).apply {
+                            adUnitId = BuildConfig.ADMOB_BANNER_ID
+                            // KLUCZOWA ZMIANA: Używamy adaptacyjnego rozmiaru zamiast BANNER
+                            setAdSize(getAdSize(adContainer))
+                        }
+
+                        adView = newAdView
+                        adContainer.removeAllViews() // Zabezpieczenie przed duplikacją
+                        adContainer.addView(newAdView)
+                        newAdView.loadAd(AdRequest.Builder().build())
                     }
                 }
             }
         }
+    }
+
+    private fun getAdSize(adContainer: FrameLayout): AdSize {
+        val displayMetrics = resources.displayMetrics
+        var adWidthPixels = adContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+        val density = displayMetrics.density
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 
     private fun setupSpinner() {
@@ -418,7 +472,6 @@ class ActivityMilling : AppCompatActivity() {
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        // 1. POBIERANIE INSTRUKCJI PÓL (Tak jak w Twoim showInfo)
         val suffix = if (calcSys == 1000) "m" else "inch"
         val resId = resources.getIdentifier("info_1_$suffix", "string", packageName)
         if (resId != 0) {
@@ -448,7 +501,7 @@ class ActivityMilling : AppCompatActivity() {
                     row.findViewById<TextView>(R.id.col4).text = thread.holeMax
                     row.findViewById<TextView>(R.id.col5).text = thread.holeSize // np. "8.5"
 
-                    // NOWOŚĆ: Logika przenoszenia danych po kliknięciu wiersza
+                    // Logika przenoszenia danych po kliknięciu wiersza
                     row.setOnClickListener {
                         val editTexts = (0 until edtPanel.childCount)
                             .map { edtPanel.getChildAt(it) }
@@ -482,6 +535,7 @@ class ActivityMilling : AppCompatActivity() {
                 text = label
                 textSize = 10f
                 setBackgroundResource(R.drawable.button_style)
+                setTextColor(Color.WHITE)
                 backgroundTintList = null
                 setOnClickListener {
                     val sIdx = if (index > 1) 2 else 0 // Proste mapowanie: 0,1 -> Metryczne, 2,3 -> Calowe
