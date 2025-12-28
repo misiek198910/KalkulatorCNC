@@ -5,7 +5,6 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
-import android.text.Html
 import android.text.InputType
 import android.text.TextWatcher
 import android.view.Gravity
@@ -13,14 +12,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.Spinner
+import android.widget.TableLayout
+import android.widget.TableRow
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.isEmpty
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
@@ -30,7 +40,9 @@ import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.data.preferences.ClassPrefs
 import com.example.calkulatorcnc.ui.adapters.PremiumSpinnerAdapter
-import com.google.android.gms.ads.*
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import getMaterialsList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -335,7 +347,7 @@ class ActivityMilling : AppCompatActivity() {
                             }
                         }
                         1 -> { // GWINTOWANIE (VC, DC, JT)
-                            if (editTexts.size >= 1) {
+                            if (editTexts.isNotEmpty()) {
                                 editTexts[0].setText(material.vcTapping.toString())
                             }
                         }
@@ -368,39 +380,90 @@ class ActivityMilling : AppCompatActivity() {
     }
 
     private fun calculate() {
-        val editTexts = (0 until edtPanel.childCount).map { edtPanel.getChildAt(it) }.filterIsInstance<EditText>()
+
+        val editTexts = (0 until edtPanel.childCount)
+            .map { edtPanel.getChildAt(it) }
+            .filterIsInstance<EditText>()
+
         if (editTexts.isEmpty()) return
+
+        // 2. Mapowanie tekstu na liczby (Double)
         val vals = editTexts.map { it.text.toString().toDoubleOrNull() ?: 0.0 }
         val pos = spinner1.selectedItemPosition
 
+        // Tryb 8 (Środek) dopuszcza wartości 0 lub ujemne (współrzędne)
         val isZeroPointMode = pos == 8
 
+        // 3. Walidacja: Dla trybów obliczeniowych (0-7) wartości muszą być > 0
         if (!isZeroPointMode && vals.any { it <= 0.0 }) {
             Toast.makeText(this, getString(R.string.error2), Toast.LENGTH_SHORT).show()
             return
         }
 
-        val result = when (pos) {
-            0 -> {
-                val s = (vals[0] * calcSys) / 3.14 / vals[1]
-                CalculationResult(f = vals[2] * vals[3] * s, s = s)
+        // 4. Blok obliczeń
+        val result = try {
+            when (pos) {
+                0 -> { // FREZOWANIE (Vc, D, fz, z)
+                    val vc = vals[0]
+                    val d = vals[1]
+                    val fz = vals[2]
+                    val z = vals[3]
+
+                    val n = (vc * calcSys) / (Math.PI * d)
+                    val vf = fz * z * n
+                    CalculationResult(f = vf, s = n)
+                }
+                1 -> { // WIERCENIE / TOCZENIE (Vc, D, fn)
+                    val vc = vals[0]
+                    val d = vals[1]
+                    val fn = vals[2]
+
+                    val n = (vc * calcSys) / (Math.PI * d)
+                    val vf = fn * n
+                    CalculationResult(f = vf, s = n)
+                }
+                2, 3, 4, 5 -> { // TRYBY PIŁOWANIA / POSUWU NA ZĄB (fz)
+                    // Ustalenie parametrów zależnie od specyfiki trybu
+                    val fz = when (pos) {
+                        2 -> (vals[0] * vals[1]) / (vals[3] * vals[2] * calcSys)
+                        3 -> (vals[0] * vals[3]) / (vals[1] * vals[2] * calcSys)
+                        4 -> (vals[0] * vals[2] * Math.PI) / (vals[4] * vals[1] * vals[3] * calcSys)
+                        5 -> (vals[0] * vals[3] * Math.PI) / (vals[1] * vals[2] * calcSys)
+                        else -> 0.0
+                    }
+                    CalculationResult(fz = fz, isSawMode = true)
+                }
+                6 -> { // KOMPENSACJA POSUWU (f_nom, D_zew, d_narz)
+                    val dWorkpiece = vals[0]
+                    val dTool = vals[1]
+                    val fNominal = vals[2]
+
+                    if (dWorkpiece == 0.0) throw ArithmeticException("D = 0")
+                    val fActual = fNominal * ((dWorkpiece - dTool) / dWorkpiece)
+                    CalculationResult(f = fActual)
+                }
+                7 -> { // DODATKOWE PARAMETRY (Vc, D, f)
+                    val vc = vals[0]
+                    val d = vals[1]
+                    val f = vals[2]
+
+                    val n = (vc * calcSys) / (Math.PI * d)
+                    val vf = f * n
+                    CalculationResult(f = vf, s = n)
+                }
+                8 -> { // ŚRODEK DETALU (X1, X2)
+                    val x1 = vals[0]
+                    val x2 = vals[1]
+                    CalculationResult(center = (x1 + x2) / 2, isCenterMode = true)
+                }
+                else -> CalculationResult()
             }
-            1 -> {
-                val s = (vals[0] * calcSys) / 3.14 / vals[1]
-                CalculationResult(f = vals[2] * s, s = s)
-            }
-            2 -> CalculationResult(fz = (vals[0] * vals[1]) / (vals[3] * vals[2] * calcSys), isSawMode = true)
-            3 -> CalculationResult(fz = (vals[0] * vals[3]) / (vals[1] * vals[2] * calcSys), isSawMode = true)
-            4 -> CalculationResult(fz = (vals[0] * vals[2] * 3.14) / (vals[4] * vals[1] * vals[3] * calcSys), isSawMode = true)
-            5 -> CalculationResult(fz = (vals[0] * vals[3] * 3.14) / (vals[1] * vals[2] * calcSys), isSawMode = true)
-            6 -> CalculationResult(f = vals[2] * ((vals[0] - vals[1]) / vals[0]))
-            7 -> {
-                val s = (vals[0] * calcSys) / (3.14 * vals[1])
-                CalculationResult(f = vals[2] * s, s = s)
-            }
-            8 -> CalculationResult(center = (vals[0] + vals[1]) / 2, isCenterMode = true)
-            else -> CalculationResult()
+        } catch (e: Exception) {
+            val errorMsg = getString(R.string.calculation_error, e.message ?: "NaN")
+            Toast.makeText(this, errorMsg, Toast.LENGTH_SHORT).show()
+            CalculationResult()
         }
+
         showResultDialog(result)
     }
 
@@ -428,14 +491,14 @@ class ActivityMilling : AppCompatActivity() {
                 row2.visibility = View.GONE
                 separator.visibility = View.GONE
                 label3.text = getString(R.string.center_colon)
-                value3.text = String.format("%.3f", res.center)
+                value3.text = String.format(java.util.Locale.US, "%.3f", res.center)
             }
             res.isSawMode -> {
                 row1.visibility = View.GONE
                 row2.visibility = View.GONE
                 separator.visibility = View.GONE
                 label3.text = getString(R.string.fz_colon)
-                value3.text = String.format("%.4f", res.fz)
+                value3.text = String.format(java.util.Locale.US, "%.4f", res.fz)
             }
             else -> {
                 label1.text = getString(R.string.f_colon)
@@ -445,7 +508,7 @@ class ActivityMilling : AppCompatActivity() {
 
                 if (res.fz > 0 && spinner1.selectedItemPosition != 0) {
                     label3.text = getString(R.string.fz_colon)
-                    value3.text = String.format("%.3f", res.fz)
+                    value3.text = String.format(java.util.Locale.US, "%.3f", res.fz)
                 } else {
                     row3.visibility = View.GONE
                     separator.visibility = View.GONE
@@ -469,19 +532,18 @@ class ActivityMilling : AppCompatActivity() {
         val tableLayout = dialogView.findViewById<TableLayout>(R.id.dialog_main_table)
         val buttonsPanel = dialogView.findViewById<LinearLayout>(R.id.dialog_buttons_panel)
 
-        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
-        val suffix = if (calcSys == 1000) "m" else "inch"
-        val resId = resources.getIdentifier("info_1_$suffix", "string", packageName)
-        if (resId != 0) {
-            tvInstructions.text = android.text.Html.fromHtml(
-                getString(resId),
-                android.text.Html.FROM_HTML_MODE_COMPACT
-            )
-        }
+        val resId = if (calcSys == 1000) R.string.info_1_m else R.string.info_1_inch
 
-        // 2. LOGIKA BAZY DANYCH (Identyczna jak w ActivityTables)
+        tvInstructions.text = androidx.core.text.HtmlCompat.fromHtml(
+            getString(resId),
+            androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+        )
+
         fun refreshTable(sIdx: Int, tIdx: Int) {
             tableLayout.removeAllViews()
             lifecycleScope.launch {
@@ -489,35 +551,32 @@ class ActivityMilling : AppCompatActivity() {
                     AppDatabase.getDatabase(this@ActivityMilling).threadDao().getThreads(sIdx, tIdx)
                 }
 
-                addTableHeaders(tableLayout, sIdx, tIdx)
+                addTableHeaders(tableLayout, sIdx)
 
                 data.forEach { thread ->
-                    val row = LayoutInflater.from(this@ActivityMilling).inflate(R.layout.item_thread_row, tableLayout, false) as TableRow
+                    val row = LayoutInflater.from(this@ActivityMilling)
+                        .inflate(R.layout.item_thread_row, tableLayout, false) as TableRow
 
-                    // Wypełnienie tekstem
-                    row.findViewById<TextView>(R.id.col1).text = thread.name     // np. "M10"
-                    row.findViewById<TextView>(R.id.col2).text = thread.pitch    // np. "1.5"
+                    row.findViewById<TextView>(R.id.col1).text = thread.name
+                    row.findViewById<TextView>(R.id.col2).text = thread.pitch
                     row.findViewById<TextView>(R.id.col3).text = thread.holeMin
                     row.findViewById<TextView>(R.id.col4).text = thread.holeMax
-                    row.findViewById<TextView>(R.id.col5).text = thread.holeSize // np. "8.5"
+                    row.findViewById<TextView>(R.id.col5).text = thread.holeSize
 
-                    // Logika przenoszenia danych po kliknięciu wiersza
                     row.setOnClickListener {
                         val editTexts = (0 until edtPanel.childCount)
                             .map { edtPanel.getChildAt(it) }
                             .filterIsInstance<EditText>()
 
-                        // Sprawdzamy, czy jesteśmy w trybie gwintowania i mamy odpowiednie pola
                         if (editTexts.size >= 3) {
-                            // 1. Wyciągamy samą liczbę z nazwy gwintu (np. "M10" -> "10")
                             val nominalDiameter = thread.name.replace(Regex("[^0-9.,]"), "").replace(",", ".")
 
-                            // 2. Przypisujemy: DC (Średnica) to pole indeks 1, JT (Skok) to pole indeks 2
                             editTexts[1].setText(nominalDiameter)
                             editTexts[2].setText(thread.pitch.replace(",", "."))
 
-                            Toast.makeText(this@ActivityMilling, "Wybrano: ${thread.name}", Toast.LENGTH_SHORT).show()
-                            dialog.dismiss() // Zamykamy dialog po wyborze
+                            val message = getString(R.string.toast_thread_selected, thread.name)
+                            Toast.makeText(this@ActivityMilling, message, Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
                         }
                     }
                     tableLayout.addView(row)
@@ -525,7 +584,7 @@ class ActivityMilling : AppCompatActivity() {
             }
         }
 
-        // 3. GENEROWANIE PRZYCISKÓW KATEGORII (M, MF, UNC...)
+        // 3. GENEROWANIE PRZYCISKÓW KATEGORII
         val categories = arrayOf("M", "MF", "UNC", "UNF", "G")
         categories.forEachIndexed { index, label ->
             val btn = com.google.android.material.button.MaterialButton(this).apply {
@@ -538,25 +597,34 @@ class ActivityMilling : AppCompatActivity() {
                 setTextColor(Color.WHITE)
                 backgroundTintList = null
                 setOnClickListener {
-                    val sIdx = if (index > 1) 2 else 0 // Proste mapowanie: 0,1 -> Metryczne, 2,3 -> Calowe
+                    // Mapowanie kategorii na parametry bazy danych
+                    val sIdx = if (index > 1) 2 else 0
                     refreshTable(sIdx, index % 2)
                 }
             }
             buttonsPanel.addView(btn)
         }
 
-        refreshTable(0, 0) // Startujemy od tabeli M
+        refreshTable(0, 0)
         dialogView.findViewById<Button>(R.id.btn_close_dialog).setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
-    private fun addTableHeaders(tableLayout: TableLayout, sIdx: Int, tIdx: Int) {
+    private fun addTableHeaders(tableLayout: TableLayout, sIdx: Int) {
         val headerRow = TableRow(this).apply {
-            setBackgroundColor(Color.parseColor("#333333"))
+            setBackgroundColor("#333333".toColorInt())
             setPadding(0, dpToPx(4), 0, dpToPx(4))
         }
+
         val isInch = sIdx in listOf(2, 3, 4, 5)
-        val headers = arrayOf("Nazwa", if(isInch) "TPI" else "P", "Min", "Max", "Wiertło")
+
+        val headers = arrayOf(
+            getString(R.string.header_name),
+            if (isInch) getString(R.string.header_tpi) else getString(R.string.header_pitch),
+            getString(R.string.header_min),
+            getString(R.string.header_max),
+            getString(R.string.header_drill)
+        )
 
         headers.forEach { title ->
             headerRow.addView(TextView(this).apply {
@@ -604,33 +672,44 @@ class ActivityMilling : AppCompatActivity() {
     private fun showInfo() {
         val item = spinner1.selectedItemPosition
 
-        // Jeśli wybrano Gwintowanie (pozycja 1)
         if (item == 1) {
             showThreadDatabaseDialog()
-        } else {
-            val infoIndex = when (item) {
-                2 -> 4; 3 -> 5; 4 -> 6; 5 -> 7; 6 -> 2; 7 -> 3; 8 -> 12
-                else -> item
-            }
+            return
+        }
 
-            val suffix = if (calcSys == 1000) "m" else "inch"
-            val resourceName = "info_${infoIndex}_$suffix"
-            val resId = resources.getIdentifier(resourceName, "string", packageName)
+        val isMetric = calcSys == 1000
+        val resId = getInfoResourceId(item, isMetric)
 
-            if (resId != 0) {
-                val dialogView =
-                    LayoutInflater.from(this).inflate(R.layout.window_information_modern, null)
-                val content = dialogView.findViewById<TextView>(R.id.infoContent)
-                val btnOk = dialogView.findViewById<Button>(R.id.btnOk)
-                content.text = android.text.Html.fromHtml(
-                    getString(resId),
-                    android.text.Html.FROM_HTML_MODE_COMPACT
-                )
-                val dialog = AlertDialog.Builder(this).setView(dialogView).create()
-                dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
-                btnOk.setOnClickListener { dialog.dismiss() }
-                dialog.show()
-            }
+        if (resId != 0) {
+            val dialogView = LayoutInflater.from(this).inflate(R.layout.window_information_modern, null)
+            val content = dialogView.findViewById<TextView>(R.id.infoContent)
+            val btnOk = dialogView.findViewById<Button>(R.id.btnOk)
+
+            content.text = androidx.core.text.HtmlCompat.fromHtml(
+                getString(resId),
+                androidx.core.text.HtmlCompat.FROM_HTML_MODE_COMPACT
+            )
+
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .create()
+
+            dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+            btnOk.setOnClickListener { dialog.dismiss() }
+            dialog.show()
+        }
+    }
+    private fun getInfoResourceId(pos: Int, isMetric: Boolean): Int {
+        return when (pos) {
+            0 -> if (isMetric) R.string.info_0_m else R.string.info_0_inch
+            2 -> if (isMetric) R.string.info_4_m else R.string.info_4_inch
+            3 -> if (isMetric) R.string.info_5_m else R.string.info_5_inch
+            4 -> if (isMetric) R.string.info_6_m else R.string.info_6_inch
+            5 -> if (isMetric) R.string.info_7_m else R.string.info_7_inch
+            6 -> if (isMetric) R.string.info_2_m else R.string.info_2_inch
+            7 -> if (isMetric) R.string.info_3_m else R.string.info_3_inch
+            8 -> if (isMetric) R.string.info_12_m else R.string.info_12_inch
+            else -> 0 // Brak informacji dla danej pozycji
         }
     }
 

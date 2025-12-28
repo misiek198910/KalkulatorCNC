@@ -25,7 +25,6 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.calkulatorcnc.BuildConfig
@@ -50,7 +49,7 @@ data class TurningResult(
     val mode: ResultDisplayMode = ResultDisplayMode.STANDARD
 )
 
-enum class ResultDisplayMode { STANDARD, TIME, VOLUME, ROUGHNESS, TAPER }
+enum class ResultDisplayMode { STANDARD, TIME, VOLUME, ROUGHNESS, TAPER, NONE }
 
 class ActivityTourning : AppCompatActivity() {
 
@@ -223,49 +222,64 @@ class ActivityTourning : AppCompatActivity() {
         val materials = getMaterialsList(this)
         val dialogView = LayoutInflater.from(this).inflate(R.layout.window_materials_modern, null)
         val container = dialogView.findViewById<LinearLayout>(R.id.materialsContainer)
-        val dialog = AlertDialog.Builder(this).setView(dialogView).create()
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         materials.forEachIndexed { index, material ->
             val itemView = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
             val tvName = itemView.findViewById<TextView>(R.id.materialName)
-            if (!isPremium && index > 0) itemView.findViewById<ImageView>(R.id.lockIcon).visibility = View.VISIBLE
+            val ivLock = itemView.findViewById<ImageView>(R.id.lockIcon)
+
             tvName.text = material.name
+
+            if (!isPremium && index > 0) {
+                ivLock.visibility = View.VISIBLE
+                ivLock.setColorFilter(androidx.core.content.ContextCompat.getColor(this, R.color.gold))
+            }
 
             itemView.setOnClickListener {
                 if (!isPremium && index > 0) {
                     dialog.dismiss()
                     showPremiumRequired()
                 } else {
-                    val editTexts = (0 until edtPanel.childCount).map { edtPanel.getChildAt(it) }.filterIsInstance<EditText>()
-                    val operationPos = spinner1.selectedItemPosition
+                    // Pobieramy aktualną listę pól tekstowych
+                    val editTexts = (0 until edtPanel.childCount)
+                        .map { edtPanel.getChildAt(it) }
+                        .filterIsInstance<EditText>()
 
                     when (operationPos) {
                         0 -> { // PARAMETRY SKRAWANIA (VC, AP, Fn, KC, DM)
                             if (editTexts.size >= 5) {
-                                editTexts[0].setText(material.vcTurning.toString()) // VC
-                                editTexts[2].setText(material.fnTurning.toString()) // Fn
-                                editTexts[3].setText(material.kc.toString())         // KC - automatycznie!
+                                editTexts[0].setText(material.vcTurning.toString())
+                                editTexts[2].setText(material.fnTurning.toString())
+                                editTexts[3].setText(material.kc.toString())
                             }
                         }
                         1 -> { // WYTACZANIE (VC, DM, Fn)
                             if (editTexts.size >= 3) {
-                                editTexts[0].setText(material.vcTurning.toString()) // VC
-                                editTexts[2].setText(material.fnTurning.toString()) // Fn
+                                editTexts[0].setText(material.vcTurning.toString())
+                                editTexts[2].setText(material.fnTurning.toString())
                             }
                         }
                         2 -> { // GWINTOWANIE (VC, DM, JT)
-                            if (editTexts.size >= 3) {
-                                // Teraz używamy dedykowanego vcThreading zamiast 180!
+                            if (editTexts.isNotEmpty()) {
                                 editTexts[0].setText(material.vcThreading.toString())
                             }
                         }
                     }
+
+                    val msg = getString(R.string.toast_material_selected, material.name)
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+
                     dialog.dismiss()
                 }
             }
             container.addView(itemView)
         }
+
         dialogView.findViewById<Button>(R.id.btnCancelMaterials).setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
@@ -300,55 +314,95 @@ class ActivityTourning : AppCompatActivity() {
     }
 
     private fun calculate() {
-        val editTexts = (0 until edtPanel.childCount).map { edtPanel.getChildAt(it) }.filterIsInstance<EditText>()
+        // 1. Pobieranie widoków EditText z panelu
+        val editTexts = (0 until edtPanel.childCount)
+            .map { edtPanel.getChildAt(it) }
+            .filterIsInstance<EditText>()
+
         if (editTexts.isEmpty()) return
+
+        // 2. Mapowanie tekstu na liczby (Double)
         val vals = editTexts.map { it.text.toString().toDoubleOrNull() ?: 0.0 }
 
-        if (vals.any { it <= 0.0 }) {
+        // 3. Walidacja: Wszystkie pola muszą być większe od 0 (z wyjątkiem średnicy 'd' w stożku)
+        val currentPos = spinner1.selectedItemPosition
+        if (vals.any { it <= 0.0 } && currentPos != 6) {
             Toast.makeText(this, getString(R.string.error2), Toast.LENGTH_SHORT).show()
             return
         }
 
-        val result = when (spinner1.selectedItemPosition) {
-            0 -> { // PARAMETRY SKRAWANIA (5 pól)
-                val s = (vals[0] * calcSys) / Math.PI / vals[4]
-                val f = vals[2] * s
-                TurningResult(f = f, s = s, mode = ResultDisplayMode.STANDARD)
+        // 4. Obliczenia zależne od wybranego trybu
+        val result = try {
+            when (currentPos) {
+                0, 1, 2 -> { // PARAMETRY / WYTACZANIE / GWINTOWANIE
+                    // vals[0]: Vc (m/min), vals[1]: D (mm), vals[2]: fn (mm/obr)
+                    val vc = vals[0]
+                    val d = vals[1]
+                    val fn = vals[2]
+
+                    val n = (vc * calcSys) / (Math.PI * d)
+                    val vf = fn * n
+                    TurningResult(s = n, f = vf, mode = ResultDisplayMode.STANDARD)
+                }
+
+                3 -> { // CZAS MASZYNOWY
+                    // vals[0]: L (mm), vals[1]: Vc (m/min), vals[2]: D (mm), vals[3]: fn (mm/obr)
+                    val l = vals[0]
+                    val vc = vals[1]
+                    val d = vals[2]
+                    val fn = vals[3]
+
+                    val n = (vc * calcSys) / (Math.PI * d)
+                    val tc = l / (fn * n)
+                    TurningResult(tc = tc, mode = ResultDisplayMode.TIME)
+                }
+
+                4 -> { // WYDAJNOŚĆ (Q)
+                    // vals[0]: Vc, vals[1]: ap, vals[2]: fn
+                    val q = vals[0] * vals[1] * vals[2]
+                    TurningResult(q = q, mode = ResultDisplayMode.VOLUME)
+                }
+
+                5 -> { // CHROPOWATOŚĆ (Ra)
+                    // vals[0]: fn (mm/obr), vals[1]: re (promień płytki mm)
+                    val fn = vals[0]
+                    val re = vals[1]
+
+                    // Teoretyczna chropowatość Ra w mikrometrach (µm)
+                    val ra = ((fn * fn) / (32 * re)) * 1000
+                    TurningResult(ra = ra, mode = ResultDisplayMode.ROUGHNESS)
+                }
+
+                6 -> { // STOŻEK (Kąt alfa)
+                    // vals[0]: D (duża śr.), vals[1]: d (mała śr.), vals[2]: L (długość)
+                    val bigD = vals[0]
+                    val smallD = vals[1]
+                    val length = vals[2]
+
+                    if (length <= 0) throw ArithmeticException(getString(R.string.angleInfo))
+
+                    val angleRad = atan((bigD - smallD) / (2 * length))
+                    val angleDeg = Math.toDegrees(angleRad)
+                    TurningResult(angle = angleDeg, mode = ResultDisplayMode.TAPER)
+                }
+
+                else -> TurningResult()
             }
-            1 -> { // WYTACZANIE
-                val s = (vals[0] * calcSys) / Math.PI / vals[1]
-                val f = vals[2] * s
-                TurningResult(f = f, s = s, mode = ResultDisplayMode.STANDARD)
-            }
-            2 -> { // Gwintowanie
-                val s = (vals[0] * calcSys) / Math.PI / vals[1]
-                val f = s * vals[2]
-                TurningResult(s = s, f = f, mode = ResultDisplayMode.STANDARD)
-            }
-            3 -> { // Czas Maszynowy
-                val s = (vals[1] * calcSys) / Math.PI / vals[2]
-                val tc = vals[0] / (vals[3] * s)
-                TurningResult(tc = tc, mode = ResultDisplayMode.TIME)
-            }
-            4 -> { // Wydajność
-                TurningResult(q = vals[0] * vals[1] * vals[2], mode = ResultDisplayMode.VOLUME)
-            }
-            5 -> { // Chropowatość
-                val ra = (vals[0] * vals[0]) / (32 * vals[1]) * 1000
-                TurningResult(ra = ra, mode = ResultDisplayMode.ROUGHNESS)
-            }
-            6 -> { // Stożek
-                val angleRad = atan((vals[0] - vals[1]) / (2 * vals[2]))
-                val angleDeg = Math.toDegrees(angleRad)
-                TurningResult(angle = angleDeg, mode = ResultDisplayMode.TAPER)
-            }
-            else -> TurningResult()
+        } catch (e: Exception) {
+            val errorText = getString(R.string.calculation_error, e.message ?: "Unknown")
+            Toast.makeText(this, errorText, Toast.LENGTH_SHORT).show()
+            TurningResult()
         }
-        showResultDialog(result)
+
+        // 5. Wyświetlenie okna z wynikiem
+        if (result.mode != ResultDisplayMode.NONE) {
+            showResultDialog(result)
+        }
     }
 
     private fun showResultDialog(res: TurningResult) {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.window_calculation_modern, null)
+
         val label1 = dialogView.findViewById<TextView>(R.id.label1)
         val value1 = dialogView.findViewById<TextView>(R.id.value1)
         val row1 = dialogView.findViewById<RelativeLayout>(R.id.row1)
@@ -361,42 +415,39 @@ class ActivityTourning : AppCompatActivity() {
         val separator = dialogView.findViewById<View>(R.id.separator)
         val btnClose = dialogView.findViewById<Button>(R.id.btnCloseResults)
 
+        val locale = java.util.Locale.US // Wymuszamy kropkę jako separator
+
         when (res.mode) {
             ResultDisplayMode.TIME -> {
-                row1.visibility = View.GONE
-                row2.visibility = View.GONE
-                separator.visibility = View.GONE
+                setupSingleRowDisplay(row1, row2, separator)
                 label3.text = getString(R.string.tc_colon)
-                value3.text = String.format("%.2f min", res.tc)
+                value3.text = String.format(locale, getString(R.string.unit_min), res.tc)
             }
             ResultDisplayMode.VOLUME -> {
-                row1.visibility = View.GONE
-                row2.visibility = View.GONE
-                separator.visibility = View.GONE
+                setupSingleRowDisplay(row1, row2, separator)
                 label3.text = getString(R.string.q_colon)
-                value3.text = String.format("%.1f cm³/min", res.q)
+                value3.text = String.format(locale, getString(R.string.unit_cm3_min), res.q)
             }
             ResultDisplayMode.STANDARD -> {
                 label1.text = getString(R.string.f_colon)
-                value1.text = String.format("%.2f", res.f)
+                value1.text = String.format(locale, "%.2f", res.f)
                 label2.text = getString(R.string.s_colon)
                 value2.text = res.s.roundToLong().toString()
                 row3.visibility = View.GONE
                 separator.visibility = View.GONE
             }
             ResultDisplayMode.ROUGHNESS -> {
-                row1.visibility = View.GONE
-                row2.visibility = View.GONE
-                separator.visibility = View.GONE
-                label3.text = "Chropowatość Ra:"
-                value3.text = String.format("%.2f µm", res.ra)
+                setupSingleRowDisplay(row1, row2, separator)
+                label3.text = getString(R.string.roughness_label)
+                value3.text = String.format(locale, getString(R.string.unit_um), res.ra)
             }
             ResultDisplayMode.TAPER -> {
-                row1.visibility = View.GONE
-                row2.visibility = View.GONE
-                separator.visibility = View.GONE
-                label3.text = "Kąt nachylenia (α):"
-                value3.text = String.format("%.3f°", res.angle)
+                setupSingleRowDisplay(row1, row2, separator)
+                label3.text = getString(R.string.taper_label)
+                value3.text = String.format(locale, getString(R.string.unit_deg), res.angle)
+            }
+            ResultDisplayMode.NONE -> {
+                return
             }
         }
 
@@ -404,6 +455,12 @@ class ActivityTourning : AppCompatActivity() {
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         btnClose.setOnClickListener { dialog.dismiss() }
         dialog.show()
+    }
+
+    private fun setupSingleRowDisplay(row1: View, row2: View, separator: View) {
+        row1.visibility = View.GONE
+        row2.visibility = View.GONE
+        separator.visibility = View.GONE
     }
 
     private fun showPremiumRequired() {

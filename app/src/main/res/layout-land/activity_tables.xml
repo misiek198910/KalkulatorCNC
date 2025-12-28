@@ -12,8 +12,8 @@
         android:id="@+id/view_overlay"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/aplication_new_blue"
         android:alpha="0.8"
+        android:background="@color/aplication_new_blue"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,35 +30,54 @@
         android:id="@+id/left_panel"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="12dp"
-        android:gravity="center_horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/layout_back"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp"
-            tools:ignore="UseCompoundDrawables">
-            <TextView
+            android:layout_marginBottom="16dp">
+
+            <ImageButton
+                android:id="@+id/button_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/arrow_back_white_24"
+                app:tint="@color/white" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/main_button4"
-                android:textColor="@color/white"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-            <ImageView
-                android:layout_width="35dp"
-                android:layout_height="35dp"
-                android:layout_marginStart="8dp"
-                android:importantForAccessibility="no"
-                android:src="@drawable/tools" />
-        </LinearLayout>
+                android:layout_centerInParent="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tables"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:lines="2"
+                    android:gravity="center_vertical"
+                    android:ellipsize="end" />
+
+                <ImageView
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_marginStart="6dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/tools" />
+            </LinearLayout>
+        </RelativeLayout>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -70,8 +89,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:backgroundTint="@color/white"
-                android:popupBackground="@drawable/bg_spinner_popup_solid"
-                tools:ignore="TouchTargetSizeCheck" />
+                android:popupBackground="@drawable/bg_spinner_popup_solid" />
         </FrameLayout>
     </LinearLayout>
 
@@ -90,8 +108,9 @@
             android:id="@+id/horizontalScrollView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="8dp"
+            android:scrollbars="none">
+
             <LinearLayout
                 android:id="@+id/buttons_panel"
                 android:layout_width="wrap_content"
@@ -103,11 +122,11 @@
             android:id="@+id/textView_TableHeader"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
             android:gravity="center"
             android:textColor="@color/gold"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
+            android:textStyle="bold" />
 
         <LinearLayout
             android:id="@+id/table_frame"
@@ -115,15 +134,14 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:background="@drawable/bg_search_input"
-            android:padding="2dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="2dp">
 
             <ScrollView
                 android:id="@+id/table_scroll_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:fadeScrollbars="false"
-                tools:ignore="SpeakableTextPresentCheck,UselessParent">
+                android:fadeScrollbars="false">
 
                 <TableLayout
                     android:id="@+id/mainTableLayout"
@@ -134,36 +152,15 @@
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layout_back"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:importantForAccessibility="no"
-        android:padding="8dp"
-        android:background="#33000000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline_vertical"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageButton
-            android:id="@+id/button_back"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/button_style"
-            android:src="@drawable/arrow_back_white_24"
-            app:tint="@color/white"
-            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
-    </LinearLayout>
-
     <FrameLayout
         android:id="@+id/adContainerLayout"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="#1A000000"
         android:minHeight="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="gone">
+        app:layout_constraintStart_toEndOf="@id/guideline_vertical">
 
         <FrameLayout
             android:id="@+id/adContainer"

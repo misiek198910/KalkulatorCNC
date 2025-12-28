@@ -5,6 +5,7 @@
     <string name="main_button2">Toczenie\nwytaczanie</string>
     <string name="main_button3">Narzędzia</string>
     <string name="main_button4">Tabele pasowania</string>
+    <string name="tables">Tabele \n pasowania</string>
     <string name="main_button5">Kody CNC</string>
     <string name="main_button6">Ustawienia</string>
     <string name="news">Nowości</string>
@@ -269,12 +270,28 @@
     <string name="function">Brak aktywnej subskrypcji</string>
     <string name="material">WYBIERZ MATERIAŁ</string>
     <string name="premium_function">Funkcje Premium</string>
+    <string name="angleInfo">Długość musi być > 0</string>
+    <string name="calculation_error">Błąd obliczeń: %1$s</string>
+    <string name="toast_thread_selected">Wybrano: %1$s</string>
+    <string name="header_name">Nazwa</string>
+    <string name="header_pitch">P</string>
+    <string name="header_tpi">TPI</string>
+    <string name="header_min">Min</string>
+    <string name="header_max">Max</string>
+    <string name="header_drill">Wiertło</string>
+    <string name="roughness_label">Chropowatość (Ra):</string>
+    <string name="taper_label">Kąt nachylenia (α):</string>
+    <string name="unit_min">%1$.2f min</string>
+    <string name="unit_cm3_min">%1$.1f cm³/min</string>
+    <string name="unit_um">%1$.2f µm</string>
+    <string name="unit_deg">%1$.3f°</string>
+    <string name="toast_material_selected">Materiał %1$s: OK</string>
     <!--  Params-->
     <string name="carbon_steel">Stal węglowa (C45)</string>
     <string name="alloy_steel">Stal stopowa (40HM)</string>
     <string name="stainless_steel">Stal nierdzewna (304)</string>
     <string name="aluminium">Aluminium (Si &lt; 10%)</string>
-    <string name="cast_iron">Gray cast iron</string>
+    <string name="cast_iron">Żeliwo szare</string>
     <string name="titanium">Tytan</string>
     <string name="epgw_composite">Kompozyt EPGW (G10/FR4)</string>
     <string name="brass">Mosiądz</string>

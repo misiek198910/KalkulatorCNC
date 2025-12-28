@@ -30,12 +30,14 @@ import com.google.firebase.firestore.Query
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewRedDot: View
+    private var latestNewsTimestampFromServer: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
         viewRedDot = findViewById(R.id.viewRedDot)
+        viewRedDot.visibility = View.GONE
         createViewAEdgetoEdgeForAds()
         checkFirstStartAndLocale()
         setupClickListeners()
@@ -133,15 +135,10 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.card_notifications).setOnClickListener {
             val pref = ClassPrefs()
+            if (latestNewsTimestampFromServer != 0L) {
+                pref.savePrefString(this, "last_seen_news_date", latestNewsTimestampFromServer.toString())
+            }
 
-            findViewById<View>(R.id.card_notifications).setOnClickListener {
-                // 1. Ukrywamy kropkę po wejściu w newsy
-                viewRedDot.visibility = View.GONE
-
-                // 2. Zapisujemy aktualny czas jako moment ostatniego "przejrzenia"
-                pref.savePrefString(this, "last_seen_news_date", System.currentTimeMillis().toString())
-
-                // 3. Otwieramy aktywność (upewnij się, że nazwa jest poprawna w projekcie)
             startActivity(Intent(this, ActivityNews::class.java))
         }
 
@@ -149,7 +146,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ActivitySubscription::class.java))
         }
 
-        }
     }
 
     private fun checkFirstStartAndLocale() {
@@ -180,11 +176,19 @@ class MainActivity : AppCompatActivity() {
             .get()
             .addOnSuccessListener { documents ->
                 if (!documents.isEmpty) {
-                    val latestNewsDate = documents.documents[0].getTimestamp("date")?.toDate()?.time ?: 0L
-                    val lastSeenDate = pref.loadPrefString(this, "last_seen_news_date").toLongOrNull() ?: 0L
+                    // Pobieramy czas najnowszego newsa
+                    latestNewsTimestampFromServer =
+                        documents.documents[0].getTimestamp("date")?.toDate()?.time ?: 0L
 
-                    if (latestNewsDate > lastSeenDate) {
+                    // Pobieramy czas ostatnio "widzianego" newsa z pamięci telefonu
+                    val lastSeenDate =
+                        pref.loadPrefString(this, "last_seen_news_date").toLongOrNull() ?: 0L
+
+                    // POKAZUJEMY kropkę tylko jeśli czas z serwera jest WIĘKSZY niż zapamiętany
+                    if (latestNewsTimestampFromServer > lastSeenDate) {
                         viewRedDot.visibility = View.VISIBLE
+                    } else {
+                        viewRedDot.visibility = View.GONE
                     }
                 }
             }
