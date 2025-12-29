@@ -1,5 +1,8 @@
 package com.example.calkulatorcnc.entity
 
+import androidx.annotation.Keep
+
+@Keep
 class ThreadDimension (
     val name: String,      // Nazwa, np. "M3"
     val pitch: String,     // Skok, np. "0.50"

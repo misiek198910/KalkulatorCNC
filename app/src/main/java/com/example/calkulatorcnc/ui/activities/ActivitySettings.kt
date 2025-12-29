@@ -106,6 +106,7 @@ class ActivitySettings : AppCompatActivity() {
             startActivity(browserIntent)
         }
         findViewById<View>(R.id.card_btn5).setOnClickListener { startActivity(Intent(this, ActivitySubscription::class.java)) }
+        findViewById<View>(R.id.card_privacy).setOnClickListener {startActivity(Intent(this,ActivityPrivacyPolicy::class.java))}
     }
 
     private fun updateStatusTexts() {

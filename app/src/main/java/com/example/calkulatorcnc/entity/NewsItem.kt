@@ -1,5 +1,6 @@
 package com.example.calkulatorcnc.entity
 
+import androidx.annotation.Keep
 import com.google.firebase.firestore.IgnoreExtraProperties
 import java.util.Date
 
@@ -9,6 +10,7 @@ import java.util.Date
  * nieujęte w tej klasie.
  */
 @IgnoreExtraProperties
+@Keep
 data class NewsItem(
     val title: String = "",
     val content: String = "",

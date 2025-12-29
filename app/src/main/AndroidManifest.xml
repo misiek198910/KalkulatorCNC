@@ -44,6 +44,9 @@
             android:name=".ui.activities.ActivityTourning"
             android:exported="false" />
         <activity
+            android:name=".ui.activities.ActivityPrivacyPolicy"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.ActivityMilling"
             android:exported="false" />
         <activity

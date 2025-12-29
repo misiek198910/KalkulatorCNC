@@ -20,8 +20,8 @@ android {
         applicationId = "kalkulator.cnc"
         minSdk = 27
         targetSdk = 36
-        versionCode = 81
-        versionName = "3.2.81"
+        versionCode = 82
+        versionName = "4.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -42,14 +42,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
 
             val appId = localProperties.getProperty("ADMOB_APP_ID") ?: ""
             val bannerId = localProperties.getProperty("ADMOB_BANNER_ID") ?: ""

@@ -1,8 +1,10 @@
 package com.example.calkulatorcnc.entity
 
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+@Keep
 @Entity(tableName = "tools")
 data class Tool(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,

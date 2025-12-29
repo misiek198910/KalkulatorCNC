@@ -1,9 +1,10 @@
 package com.example.calkulatorcnc.entity
 
+import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-
+@Keep
 @Entity(tableName = "threads")
 data class ThreadEntity(
     @PrimaryKey(autoGenerate = true)

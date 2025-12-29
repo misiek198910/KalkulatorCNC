@@ -1,5 +1,6 @@
 package com.example.calkulatorcnc.ui.activities
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
@@ -70,6 +71,7 @@ class ActivityMilling : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        setContentView(R.layout.activity_milling)
         createViewAEdgetoEdgeForAds()
         initUI()
         setupAds()
@@ -79,25 +81,35 @@ class ActivityMilling : AppCompatActivity() {
     }
 
     private fun createViewAEdgetoEdgeForAds() {
-        enableEdgeToEdge() // Obowiązkowe dla efektu Edge-to-Edge
-        setContentView(R.layout.activity_milling)
-
         val mainRoot = findViewById<View>(R.id.main)
         val customHeader = findViewById<LinearLayout>(R.id.customHeader)
+        val buttonsPanel = findViewById<LinearLayout>(R.id.layout)
         val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
         val adContainer = findViewById<FrameLayout>(R.id.adContainer)
 
         ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            val density = resources.displayMetrics.density
+
+            val isChromebook = android.os.Build.MODEL.contains("sdk_gpc", ignoreCase = true) ||
+                    android.os.Build.DEVICE.contains("emu64a", ignoreCase = true) ||
+                    packageManager.hasSystemFeature("org.chromium.arc") ||
+                    android.os.Build.DEVICE?.startsWith("arc") == true
 
             mainRoot.setPadding(0, 0, 0, 0)
-
             customHeader?.updatePadding(top = systemBars.top)
 
+            val bottomExtraFix = if (isChromebook) (32 * density).toInt() else 0
+            val horizontalMargin = (16 * density).toInt()
+
+            buttonsPanel?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = systemBars.bottom + bottomExtraFix
+                leftMargin = systemBars.left + horizontalMargin
+            }
+
             adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom
-                leftMargin = systemBars.left
-                rightMargin = systemBars.right
+                bottomMargin = systemBars.bottom + bottomExtraFix
+                rightMargin = systemBars.right + horizontalMargin
             }
 
             insets
@@ -165,11 +177,23 @@ class ActivityMilling : AppCompatActivity() {
 
     private fun getAdSize(adContainer: FrameLayout): AdSize {
         val displayMetrics = resources.displayMetrics
-        var adWidthPixels = adContainer.width.toFloat()
-        if (adWidthPixels == 0f) {
-            adWidthPixels = displayMetrics.widthPixels.toFloat()
-        }
         val density = displayMetrics.density
+
+        var adWidthPixels = adContainer.width.toFloat()
+
+        if (adWidthPixels == 0f) {
+            // Jeśli szerokość kontenera jeszcze nie jest znana (wynosi 0):
+            // W trybie Landscape na Chromebooku/Pixelu, reklama zajmuje tylko część ekranu.
+            // Odejmijmy szerokość przycisków (np. ok. 200dp) i marginesy.
+            val estimateButtonsWidthPx = 200 * density
+            val horizontalPaddingPx = 32 * density
+
+            adWidthPixels = displayMetrics.widthPixels.toFloat() - estimateButtonsWidthPx - horizontalPaddingPx
+
+            // Zabezpieczenie, żeby szerokość nie była ujemna
+            if (adWidthPixels <= 0) adWidthPixels = displayMetrics.widthPixels.toFloat()
+        }
+
         val adWidth = (adWidthPixels / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
@@ -271,31 +295,39 @@ class ActivityMilling : AppCompatActivity() {
 
     private fun createEditText(index: Int, hintText: String) = EditText(this).apply {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+        // Ujednolicony LayoutParams
         layoutParams = if (isLandscape) {
-            // W Landscape: 0dp szerokości + waga 1.0, aby pola dzieliły się miejscem obok przycisku (lub pod nim)
+            // W Landscape: rozciąganie (weight 1.0)
             LinearLayout.LayoutParams(0, dpToPx(40), 1.0f).apply {
                 setMargins(dpToPx(4), dpToPx(2), dpToPx(4), dpToPx(2))
             }
         } else {
+            // W Portrait: stała szerokość 220dp, wyśrodkowane
             LinearLayout.LayoutParams(dpToPx(220), dpToPx(48)).apply {
                 gravity = Gravity.CENTER_HORIZONTAL
                 setMargins(dpToPx(8), dpToPx(8), dpToPx(8), dpToPx(8))
             }
         }
 
+        // Wygląd i Styl
         textSize = if (isLandscape) 16f else 20f
         setTextColor(Color.WHITE)
-        setHintTextColor(androidx.core.content.ContextCompat.getColor(this@ActivityMilling, R.color.textColor_hint))
+        // Używamy 'context', aby metoda była uniwersalna dla obu aktywności
+        setHintTextColor(androidx.core.content.ContextCompat.getColor(context, R.color.textColor_hint))
         hint = hintText
         tag = index
         gravity = Gravity.CENTER
         setPadding(dpToPx(10), 0, dpToPx(10), 0)
+
+        // Wybierz jeden spójny drawable (wskazałeś, że milling jest poprawny, więc używamy edittext_style)
         setBackgroundResource(R.drawable.edittext_style)
+
         inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_CLASS_NUMBER
 
+        // Logika przycisku Clear
         addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // POPRAWKA: Sprawdzamy, czy JAKIEKOLWIEK pole EditText ma wpisany tekst
                 val anyFieldNotEmpty = (0 until edtPanel.childCount)
                     .map { edtPanel.getChildAt(it) }
                     .filterIsInstance<EditText>()

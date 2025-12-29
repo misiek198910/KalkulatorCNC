@@ -6,12 +6,10 @@
     <string name="main_button3">Narzędzia</string>
     <string name="main_button4">Tabele pasowania</string>
     <string name="tables">Tabele \n pasowania</string>
-    <string name="main_button5">Kody CNC</string>
     <string name="main_button6">Ustawienia</string>
     <string name="news">Nowości</string>
     <!--  Settings-->
     <string name="language">Język aplikacjii:</string>
-    <string name="settings_button1">Informacje</string>
     <string name="settings_button2">Inne aplikacje</string>
     <string name="settings_button3">Oceń aplikacje</string>
     <string name="settings_button4">Postaw kawę</string>
@@ -23,21 +21,11 @@
     <string name="app_rachunek_sumienia">Rachunek Sumienia</string>
     <string name="app_niewolnik_maryi">Niewolnik Maryi</string>
     <string name="app_kalkulator_cnc">Kalkulator CNC</string>
-    <string name="app_kalkulator_cnc_plus">Kalkulator CNC Plus</string>
     <string name="app_moj_rozaniec">Mój Różaniec</string>
     <string name="app_kalendarz_liturgiczny">Kalendarz Liturgiczny</string>
-    <string name="app_kalendarz_liturgiczny_plus">Kalendarz Liturgiczny Plus</string>
     <string name="app_droga_krzyzowa">Droga Krzyżowa</string>
     <string name="app_ktoz_jak_bog">Któż jak Bóg</string>
-    <string name="app_ktoz_jak_bog_plus">Któż jak Bóg Plus</string>
-    <string name="app_objawienia_plus">Objawienia Plus</string>
-    <string name="app_niewolnik_maryi_plus">Niewolnik Maryi</string>
-    <string name="app_moj_rozaniec_plus">Mój Różaniec Plus</string>
-    <string name="app_droga_krzyzowa_plus">Droga Krzyżowa Plus</string>
-    <string name="app_rachunek_sumienia_plus">Rachunek sumienia Plus</string>
     <!--  Information-->
-    <string name="information_tekst1">Bądź na bieżąco! Przejdź na bloga, aby zobaczyć najnowsze newsy o moich aplikacjach.</string>
-    <string name="information_tekst2">Przejdż do bloga</string>
     <!--  Cutting and boring-->
     <string name="calculate_txt">Rodzaj obliczeń:</string>
     <string name="calculate">Oblicz</string>
@@ -58,8 +46,6 @@
     <string name="Fn">Fn</string>
     <string name="KC">KC</string>
     <string name="DM">DM</string>
-    <string name="Full_version_1">Uwaga</string>
-    <string name="Full_version_2">Opcja dostępna w pełnej wersji aplikacjii</string>
     <string name="close">ZAMKNIJ</string>
     <string name="f_colon">F:</string>
     <string name="s_colon">S:</string>
@@ -78,52 +64,17 @@
     <string name="premium_required_button">KUP SUBSKRYPCJĘ ROCZNĄ</string>
     <string name="premium_required_cancel">MOŻE PÓŹNIEJ</string>
     <string name="premium_required_text">OPCJA PREMIUM</string>
-    <string name="premium_feat_milling">Interpolacja i wytaczanie</string>
-    <string name="premium_feat_turning">Czas maszynowy i wydajność Q</string>
-    <string name="premium_feat_zeropoint">Kalkulator punktu zerowego</string>
-    <string name="premium_feat_future">Dostęp do wszystkich przyszłych funkcji</string>
     <string name="error2">Proszę uzupełnić wszystkie pola poprawnymi danymi</string>
     <string name="informationtext">INFORMACJA</string>
     <string name="RE">RE</string>
     <string name="dm">dm</string>
     <string name="P">P</string>
     <string name="forming_abbr">Wyg.</string>
-    <string name="thread_m">M</string>
-    <string name="thread_mf">MF</string>
     <string name="thread_eg">EG</string>
     <string name="mixed_abbr">Miesz.</string>
 
 
     <!-- Fitting and Tables -->
-    <string name="choice_table">Wybierz tabele:</string>
-    <string name="M">M</string>
-    <string name="MF1">MF1</string>
-    <string name="MF2">MF2</string>
-    <string name="MJ">MJ</string>
-    <string name="UNJC">UNJC</string>
-    <string name="UNJF">UNJF</string>
-    <string name="EGM">EGM</string>
-    <string name="EGMF">EGMF</string>
-    <string name="EGUNC">EGUNC</string>
-    <string name="EGUNF">EGUNF</string>
-    <string name="UNC">UNC</string>
-    <string name="UNF">UNF</string>
-    <string name="UNEF">UNEF</string>
-    <string name="UN">UN</string>
-    <string name="NPT">NPT</string>
-    <string name="NPTF">NPTF</string>
-    <string name="NPSM">NPSM</string>
-    <string name="G">G</string>
-    <string name="BSW">BSW</string>
-    <string name="S_M">M</string>
-    <string name="S_MF">MF</string>
-    <string name="S_UNC">UNC</string>
-    <string name="S_UNF">UNF</string>
-    <string name="S_UNEF">UNEF</string>
-    <string name="S_G">G</string>
-    <string name="S_EGM">EGM</string>
-    <string name="S_BSW">BSW</string>
-    <string name="PG">PG</string>
     <string name="holePitch">Skok</string>
     <string name="holeName">Tabela</string>
     <string name="holeMin">Min.</string>
@@ -131,34 +82,21 @@
     <string name="hole">Nominał</string>
     <!-- Tool -->
     <string name="toolsName">Nazwa</string>
-    <string name="toolsF">Wartość F</string>
-    <string name="toolsS">Wartość S</string>
-    <string name="toolsWorkpiece">Materiał</string>
-    <string name="toolsNotes">Notatki</string>
     <string name="save">ZAPISZ</string>
     <string name="tools">Narzędzia</string>
     <string name="other">Inne</string>
     <string name="edit">Edytuj</string>
     <string name="delete">Usuń</string>
-    <string name="copy">Parametry skopiowane do schowka!</string>
-    <string name="cancel">Anuluj</string>
     <string name="no_notes_available">Brak notatek</string>
     <string name="clipboard_label">Parametry CNC</string>
     <string name="params_copied">Parametry skopiowane!</string>
     <string name="copy_tool_template">Narzędzie: %1$s\nMateriał: %2$s\nS: %3$s obr/min\nF: %4$s mm/min</string>
-    <string name="tool_count_label">%1$d</string>
     <string name="s_hint">S (obr/min)</string>
     <string name="f_hint">F (mm/min)</string>
     <string name="notes_hint">Dodaj notatki (opcjonalnie)</string>
 
 
-    <string name="rate_info1">Witaj. Twoja opinia jest dla mnie bardzo ważna. Czy chciałbys ocenić aplikację?</string>
-    <string name="rate_info2">Oceń</string>
-    <string name="rate_info3">Nie, Dziękuje"</string>
     <!--  ActivityKofi-->
-    <string name="kofi_text1">Jeśli podoba Ci się moja aplikacja na Androida i chcesz okazać wsparcie, możesz postawić mi wirtualną kawę przez Ko-fi. Każda kawa to dla mnie ogromna motywacja do dalszego rozwoju, poprawek i dodawania nowych funkcji. Dziękuję za Twoje wsparcie – nawet najmniejszy gest robi różnicę! </string>
-    <string name="kofi_text2">Kliknij aby przejść do witryny</string>
-    <string name="kofi_text3">Postaw kawę</string>
     <!--  ActivitySplash-->
     <string name="loading">Wczytywanie…</string>
     <!--  Info texts-->
@@ -254,7 +192,6 @@
         <item>Gwint do rurek pancernych</item>
     </string-array>
     <!--  Rest-->
-    <string name="content_description">Brak tekstu</string>
     <string name="settings_subs">Subskrypcja</string>
     <string name="status">Twój status:</string>
     <string name="subs2">Subskrypcja</string>
@@ -262,12 +199,10 @@
     <string name="no_ads">Brak reklam</string>
     <string name="buy_back">Przywróć zakupy</string>
     <string name="text_info2">Kup subskrypcję (58,99 zł / rok)</string>
-    <string name="premium_version">Wersja Premium</string>
     <string name="subs_on">Subskrypcja aktywowana!</string>
     <string name="load_data">Ładowanie danych…</string>
     <string name="subs_active">Aktywna</string>
     <string name="subs_deactive">Brak subskrypcji</string>
-    <string name="function">Brak aktywnej subskrypcji</string>
     <string name="material">WYBIERZ MATERIAŁ</string>
     <string name="premium_function">Funkcje Premium</string>
     <string name="angleInfo">Długość musi być > 0</string>
@@ -286,6 +221,7 @@
     <string name="unit_um">%1$.2f µm</string>
     <string name="unit_deg">%1$.3f°</string>
     <string name="toast_material_selected">Materiał %1$s: OK</string>
+    <string name="privacy">Polityka prywatności</string>
     <!--  Params-->
     <string name="carbon_steel">Stal węglowa (C45)</string>
     <string name="alloy_steel">Stal stopowa (40HM)</string>
@@ -293,10 +229,7 @@
     <string name="aluminium">Aluminium (Si &lt; 10%)</string>
     <string name="cast_iron">Żeliwo szare</string>
     <string name="titanium">Tytan</string>
-    <string name="epgw_composite">Kompozyt EPGW (G10/FR4)</string>
     <string name="brass">Mosiądz</string>
-    <string name="copper">Miedź</string>
-    <string name="plastics">Tworzywa sztuczne (POM/PA6)</string>
     <string name="hardened_steel">Stal hartowana (>50 HRC)</string>
 
 
