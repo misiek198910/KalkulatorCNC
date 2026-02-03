@@ -3,16 +3,16 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="20dp"
-    app:cardBackgroundColor="#E61A1A1A"
+    android:layout_height="match_parent"
+    android:layout_margin="10dp"
+    app:cardBackgroundColor="#1A1A1A"
     app:cardCornerRadius="20dp"
     app:strokeColor="@color/button_dark_blue_1"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="16dp">
 
@@ -24,11 +24,13 @@
             android:textSize="18sp"
             android:textStyle="bold"
             android:gravity="center"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="12dp"/>
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="300dp">
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fadeScrollbars="false">
             <LinearLayout
                 android:id="@+id/materialsContainer"
                 android:layout_width="match_parent"
@@ -40,8 +42,8 @@
             style="@style/button_style"
             android:id="@+id/btnCancelMaterials"
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
             android:text="@string/close"
             android:background="@drawable/button_style"
             android:textSize="14sp"

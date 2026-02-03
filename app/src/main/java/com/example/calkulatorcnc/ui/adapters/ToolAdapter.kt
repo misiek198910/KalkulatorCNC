@@ -3,6 +3,7 @@ package com.example.calkulatorcnc.ui.adapters
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Color
 import android.transition.AutoTransition
 import android.transition.TransitionManager
 import android.view.LayoutInflater
@@ -16,6 +17,7 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.entity.Tool
+import getIsoGroupForMaterial // Import funkcji zabezpieczającej z MaterialParam.kt
 
 class ToolAdapter(
     private var tools: List<Tool>, // Lista obecnie wyświetlana
@@ -38,23 +40,17 @@ class ToolAdapter(
         val btnMenu: ImageButton = view.findViewById(R.id.btnMenu)
     }
 
-    // --- NOWE FUNKCJE OBSŁUGUJĄCE ACTIVITY ---
+    // --- FUNKCJE OBSŁUGUJĄCE ACTIVITY ---
 
-    /**
-     * Aktualizuje główne źródło danych (np. po wczytaniu z bazy Room).
-     */
     fun updateData(newTools: List<Tool>) {
         this.allTools = newTools
         this.tools = newTools
         notifyDataSetChanged()
     }
 
-    /**
-     * Filtruje listę na podstawie wpisanej frazy.
-     */
     fun filter(query: String) {
         tools = if (query.isEmpty()) {
-            allTools // Jeśli puste, pokaż wszystko
+            allTools
         } else {
             allTools.filter {
                 it.name.contains(query, ignoreCase = true) ||
@@ -64,12 +60,7 @@ class ToolAdapter(
         notifyDataSetChanged()
     }
 
-    /**
-     * Zwraca liczbę narzędzi po przefiltrowaniu (dla licznika tvToolCount).
-     */
-    fun getFilteredCount(): Int {
-        return tools.size
-    }
+    fun getFilteredCount(): Int = tools.size
 
     // --- STANDARDOWE METODY ADAPTERA ---
 
@@ -87,6 +78,32 @@ class ToolAdapter(
         holder.tvWorkpiece.text = tool.workpiece ?: ""
         holder.tvS.text = "S: ${tool.s ?: "---"}"
         holder.tvF.text = "F: ${tool.f ?: "---"}"
+
+        // --- NOWA LOGIKA ISO (ZABEZPIECZENIE DLA STARYCH DANYCH) ---
+        // Funkcja sprawdza grupę ISO na podstawie tekstowej nazwy materiału
+        val isoGroup = getIsoGroupForMaterial(context, tool.workpiece)
+        val isoColor = when (isoGroup) {
+            "P" -> context.getColor(R.color.iso_p_blue)
+            "M" -> context.getColor(R.color.iso_m_yellow)
+            "K" -> context.getColor(R.color.iso_k_red)
+            "N" -> context.getColor(R.color.iso_n_green)
+            "S" -> context.getColor(R.color.iso_s_orange)
+            "H" -> context.getColor(R.color.iso_h_grey)
+            else -> Color.TRANSPARENT // Dla starych lub nieznanych materiałów
+        }
+
+        if (isoColor != Color.TRANSPARENT) {
+            // Stylizacja etykiety materiału jako kolorowy "badge"
+            holder.tvWorkpiece.setBackgroundColor(isoColor)
+            // Czarny tekst dla żółtej grupy M, biały dla reszty
+            holder.tvWorkpiece.setTextColor(if (isoGroup == "M") Color.BLACK else Color.WHITE)
+            holder.tvWorkpiece.setPadding(16, 4, 16, 4)
+        } else {
+            // Reset stylu dla materiałów "Inne" lub starych wpisów bez dopasowania
+            holder.tvWorkpiece.setBackgroundResource(0)
+            holder.tvWorkpiece.setTextColor(Color.parseColor("#BDBDBD"))
+            holder.tvWorkpiece.setPadding(0, 0, 0, 0)
+        }
 
         // Logika tekstu notatek
         if (tool.notes.isNullOrBlank()) {

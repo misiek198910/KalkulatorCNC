@@ -30,6 +30,17 @@
             android:textAllCaps="true"
             android:letterSpacing="0.05" />
 
+        <ImageButton
+            android:id="@+id/btnCopyResults"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_copy"
+            app:tint="@color/white"
+            tools:ignore="ContentDescription" />
+
         <RelativeLayout
             android:id="@+id/row1"
             android:layout_width="match_parent"

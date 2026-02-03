@@ -29,6 +29,9 @@
 # Zapobiega problemom z ładowaniem reklam i danymi z Firestore/Analytics
 -keep class com.google.android.gms.ads.** { *; }
 -keep class com.google.firebase.** { *; }
+-keep class com.google.android.gms.measurement.** { *; }
+-keep class com.google.android.gms.internal.measurement.** { *; }
+-keep class com.google.android.gms.measurement.AppMeasurementService { *; }
 -keep public class com.google.android.gms.common.internal.safeparcel.SafeParcelable {
     public static final *** NULL;
 }

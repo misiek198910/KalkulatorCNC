@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -17,6 +18,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.graphics.toColorInt
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,8 +36,11 @@ import com.example.calkulatorcnc.ui.adapters.ToolAdapter
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -52,6 +57,7 @@ class ActivityTools : AppCompatActivity() {
     private val toolsLimit = 3
     private var adView: AdView? = null
     private var currentToolsCount = 0
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +68,7 @@ class ActivityTools : AppCompatActivity() {
         initViews()
         setupDataObservation()
         setupSearchLogic()
+        analytics = Firebase.analytics
     }
 
     private fun createViewAEdgetoEdgeForAds() {
@@ -227,6 +234,11 @@ class ActivityTools : AppCompatActivity() {
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
 
+    private fun hideKeyboard() {
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
+    }
+
     private fun showPremiumRequiredDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.window_premium_upgrade, null)
         val btnGo = dialogView.findViewById<Button>(R.id.btnGoToPremium)
@@ -249,5 +261,13 @@ class ActivityTools : AppCompatActivity() {
     override fun onDestroy() {
         adView?.destroy()
         super.onDestroy()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Narzędzia")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivityTools")
+        }
     }
 }

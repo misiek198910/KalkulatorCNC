@@ -1,7 +1,6 @@
 package com.example.calkulatorcnc.ui.activities
 
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -9,21 +8,33 @@ import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.calkulatorcnc.BuildConfig
-import com.example.calkulatorcnc.data.preferences.ClassPrefs
-import com.example.calkulatorcnc.R
-import com.example.calkulatorcnc.billing.SubscriptionManager
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.MobileAds
-import com.google.android.ump.ConsentInformation
-import java.util.concurrent.atomic.AtomicBoolean
 import androidx.core.view.isEmpty
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import com.example.calkulatorcnc.BuildConfig
+import com.example.calkulatorcnc.R
+import com.example.calkulatorcnc.billing.SubscriptionManager
+import com.example.calkulatorcnc.data.preferences.ClassPrefs
+import com.example.calkulatorcnc.ui.languages.LanguageManager
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.play.core.appupdate.AppUpdateOptions
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
@@ -31,6 +42,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewRedDot: View
     private var latestNewsTimestampFromServer: Long = 0
+    private lateinit var analytics: FirebaseAnalytics
+    private lateinit var appUpdateManager: AppUpdateManager
+    private lateinit var updateResultLauncher: ActivityResultLauncher<IntentSenderRequest>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +53,19 @@ class MainActivity : AppCompatActivity() {
         viewRedDot = findViewById(R.id.viewRedDot)
         viewRedDot.visibility = View.GONE
         createViewAEdgetoEdgeForAds()
-        checkFirstStartAndLocale()
+        migrateToProfessionalLanguageSystem()
         setupClickListeners()
         checkForNewNews()
+        analytics = Firebase.analytics
+        updateResultLauncher = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result ->
+            if (result.resultCode != RESULT_OK) {
+                // Tutaj możesz obsłużyć sytuację, gdy użytkownik anulował aktualizację
+                // lub wystąpił błąd. Aktualizacja elastyczna spróbuje ponownie później.
+            }
+        }
+        checkForUpdates()
     }
 
     private fun createViewAEdgetoEdgeForAds() {
@@ -146,22 +170,35 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, ActivitySubscription::class.java))
         }
 
+        findViewById<View>(R.id.card_tolerances).setOnClickListener {
+            startActivity(Intent(this, ActivityTolerances::class.java))
+        }
+
     }
 
-    private fun checkFirstStartAndLocale() {
+    private fun migrateToProfessionalLanguageSystem() {
         val pref = ClassPrefs()
-        val firstStart = pref.loadPrefString(this, "firststart_data")
+        // Sprawdzamy, czy użytkownik ma już nowy system (ISO String)
+        val currentIso = pref.loadPrefString(this, "language_iso")
 
-        if (firstStart.isEmpty()) {
-            // Pobieranie języka urządzenia
-            val currentLocale = resources.configuration.locales[0]
-            val languageTag = currentLocale.toLanguageTag()
+        if (currentIso.isEmpty()) {
+            // Jeśli nie ma ISO, sprawdzamy stare dane (Int)
+            val oldInt = pref.loadPrefInt(this, "language_data")
 
-            // 0 dla Polskiego, 1 dla reszty (np. Angielski)
-            val languageData = if (languageTag == "pl-PL") 0 else 1
+            val migratedIso = when (oldInt) {
+                0 -> "pl"
+                1 -> "en"
+                else -> {
+                    // Jeśli to zupełnie nowy użytkownik, weź język jego telefonu
+                    val deviceLang = resources.configuration.locales[0].language
+                    if (LanguageManager.supportedLanguages.any { it.isoCode == deviceLang }) deviceLang else "en"
+                }
+            }
 
-            pref.savePrefInt(this, "language_data", languageData)
-            pref.savePrefString(this, "firststart_data", "true")
+            // Zapisujemy nowy standard i ustawiamy go w systemie
+            pref.savePrefString(this, "language_iso", migratedIso)
+            val appLocale = androidx.core.os.LocaleListCompat.forLanguageTags(migratedIso)
+            androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(appLocale)
         }
     }
 
@@ -192,5 +229,63 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+    }
+
+    private fun checkForUpdates() {
+        appUpdateManager = AppUpdateManagerFactory.create(this)
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.FLEXIBLE)
+            ) {
+                // Jeśli aktualizacja jest dostępna, zaproponuj ją
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateResultLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.FLEXIBLE).build()
+                )
+            }
+        }
+    }
+
+    private val listener = InstallStateUpdatedListener { state ->
+        if (state.installStatus() == InstallStatus.DOWNLOADED) {
+            // Po pobraniu wyświetlamy SnackBar z prośbą o restart
+            showUpdateCompletedSnackbar()
+        }
+    }
+
+    private fun showUpdateCompletedSnackbar() {
+        Snackbar.make(
+            findViewById(android.R.id.content),
+            getString(R.string.update_downloaded),
+            Snackbar.LENGTH_INDEFINITE
+        ).apply {
+            setAction(getString(R.string.restart_app)) { appUpdateManager.completeUpdate() }
+            show()
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "MainActivity")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
+
+            appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+                if (info.installStatus() == InstallStatus.DOWNLOADED) {
+                    showUpdateCompletedSnackbar()
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Sprawdzamy, czy manager został zainicjalizowany, aby uniknąć błędu
+        if (::appUpdateManager.isInitialized) {
+            appUpdateManager.unregisterListener(listener)
+        }
     }
 }

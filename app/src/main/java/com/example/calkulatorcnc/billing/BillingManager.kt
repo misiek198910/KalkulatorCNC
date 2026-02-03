@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import com.android.billingclient.api.*
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingClient.ProductType
+import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.entity.SubscriptionEntity
 import kotlinx.coroutines.*
@@ -120,12 +121,21 @@ class BillingManager private constructor(context: Context) {
     }
 
     fun launchPurchaseFlow(activity: Activity, productDetailsToPurchase: ProductDetails) {
-        val offerDetails = productDetailsToPurchase.subscriptionOfferDetails?.firstOrNull() ?: return
+        // 1. Szukamy oferty powiązanej z Twoim nowym planem automatycznym
+        val offerDetails = productDetailsToPurchase.subscriptionOfferDetails?.find {
+            it.basePlanId == "cnc-premium-auto"
+        } ?: productDetailsToPurchase.subscriptionOfferDetails?.firstOrNull() // Fallback do czegokolwiek, żeby nie zablokować zakupu
+
+        if (offerDetails == null) {
+            listener?.onPurchaseError("Nie znaleziono ofert subskrypcji.")
+            return
+        }
+
         val flowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                     .setProductDetails(productDetailsToPurchase)
-                    .setOfferToken(offerDetails.offerToken)
+                    .setOfferToken(offerDetails.offerToken) // Ten token zawiera informację o trialu!
                     .build()
             )).build()
 
@@ -143,6 +153,28 @@ class BillingManager private constructor(context: Context) {
             }
         } else if (purchase.isAcknowledged) {
             updateLocalStatus(true, purchase.purchaseToken)
+        }
+    }
+
+    fun getSubscriptionOfferInfo(context: Context, productDetails: ProductDetails?): String {
+        // Szukamy Twojego nowego planu
+        val offer = productDetails?.subscriptionOfferDetails?.find { it.basePlanId == "cnc-premium-auto" }
+
+        // Szukamy fazy darmowej (Trial)
+        val trialPhase = offer?.pricingPhases?.pricingPhaseList?.find { it.priceAmountMicros == 0L }
+        // Szukamy fazy płatnej (Cena bazowa)
+        val basePhase = offer?.pricingPhases?.pricingPhaseList?.lastOrNull()
+
+        return when {
+            trialPhase != null && basePhase != null -> {
+                // "Zacznij 7 dni za darmo, potem [CENA] / rok"
+                context.getString(R.string.subs_trial_button, basePhase.formattedPrice)
+            }
+            basePhase != null -> {
+                // "Subskrypcja roczna: [CENA]"
+                context.getString(R.string.subs_annual_button, basePhase.formattedPrice)
+            }
+            else -> context.getString(R.string.subs_buy_button)
         }
     }
 

@@ -88,55 +88,69 @@
 
     <string name="loading">Loading…</string>
 
-        <string name="info_0_m"><![CDATA[<b>Milling Parameters</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DC</b> - Tool diameter [mm]<br/><b>FZ</b> - Feed per tooth [mm]<br/><b>Z</b> - Number of teeth (for drill enter 1)]]></string>
-        <string name="info_0_inch"><![CDATA[<b>Milling Parameters (Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DC</b> - Tool diameter [inch]<br/><b>FZ</b> - Feed per tooth [inch]<br/><b>Z</b> - Number of teeth (for drill enter 1)]]></string>
+    <string name="info_0_m"><![CDATA[<b>Milling Parameters</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DC</b> - Tool diameter [mm]<br/><b>FZ</b> - Feed per tooth [mm]<br/><b>Z</b> - Number of teeth (for drill enter 1)]]></string>
+    <string name="info_0_inch"><![CDATA[<b>Milling Parameters (Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DC</b> - Tool diameter [inch]<br/><b>FZ</b> - Feed per tooth [inch]<br/><b>Z</b> - Number of teeth (for drill enter 1)]]></string>
 
-        <string name="info_1_m"><![CDATA[<b>Threading (Milling)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DC</b> - Tool diameter [mm]<br/><b>JT</b> - Thread pitch [mm]]]></string>
-        <string name="info_1_inch"><![CDATA[<b>Threading (Milling - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DC</b> - Tool diameter [inch]<br/><b>JT</b> - Thread pitch [inch]]]></string>
+    <string name="info_1_m"><![CDATA[<b>Threading (Milling)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DC</b> - Tool diameter [mm]<br/><b>JT</b> - Thread pitch [mm]]]></string>
+    <string name="info_1_inch"><![CDATA[<b>Threading (Milling - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DC</b> - Tool diameter [inch]<br/><b>JT</b> - Thread pitch [inch]]]></string>
 
-        <string name="info_2_m"><![CDATA[<b>Boring / Reaming</b><br/><br/><b>HD</b> - Hole diameter [mm]<br/><b>TD</b> - Tool diameter [mm]<br/><b>F</b> - Feed [mm/min]]]></string>
-        <string name="info_2_inch"><![CDATA[<b>Boring / Reaming (Inch)</b><br/><br/><b>HD</b> - Hole diameter [inch]<br/><b>TD</b> - Tool diameter [inch]<br/><b>F</b> - Feed [inch/min]]]></string>
+    <string name="info_2_m"><![CDATA[<b>Boring / Reaming</b><br/><br/><b>HD</b> - Hole diameter [mm]<br/><b>TD</b> - Tool diameter [mm]<br/><b>F</b> - Feed [mm/min]]]></string>
+    <string name="info_2_inch"><![CDATA[<b>Boring / Reaming (Inch)</b><br/><br/><b>HD</b> - Hole diameter [inch]<br/><b>TD</b> - Tool diameter [inch]<br/><b>F</b> - Feed [inch/min]]]></string>
 
-        <string name="info_4_m"><![CDATA[<b>Band Saws (Option 1)</b><br/><br/><b>AS</b> - Unit cutting area [mm²/min]<br/><b>T</b> - Tooth pitch [mm]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>L</b> - Cutting length [mm]]]></string>
-        <string name="info_4_inch"><![CDATA[<b>Band Saws (Option 1 - Inch)</b><br/><br/><b>AS</b> - Unit cutting area [in²/min]<br/><b>T</b> - Tooth pitch [inch]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>L</b> - Cutting length [inch]]]></string>
+    <string name="info_4_m"><![CDATA[<b>Band Saws (Option 1)</b><br/><br/><b>AS</b> - Unit cutting area [mm²/min]<br/><b>T</b> - Tooth pitch [mm]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>L</b> - Cutting length [mm]]]></string>
+    <string name="info_4_inch"><![CDATA[<b>Band Saws (Option 1 - Inch)</b><br/><br/><b>AS</b> - Unit cutting area [in²/min]<br/><b>T</b> - Tooth pitch [inch]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>L</b> - Cutting length [inch]]]></string>
 
-        <string name="info_5_m"><![CDATA[<b>Band Saws (Option 2)</b><br/><br/><b>VF</b> - Feed rate [mm/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>Z</b> - Number of teeth<br/><b>LB</b> - Bandsaw length [mm]]]></string>
-        <string name="info_5_inch"><![CDATA[<b>Band Saws (Option 2 - Inch)</b><br/><br/><b>VF</b> - Feed rate [in/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>Z</b> - Number of teeth<br/><b>LB</b> - Bandsaw length [inch]]]></string>
+    <string name="info_5_m"><![CDATA[<b>Band Saws (Option 2)</b><br/><br/><b>VF</b> - Feed rate [mm/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>Z</b> - Number of teeth<br/><b>LB</b> - Bandsaw length [mm]]]></string>
+    <string name="info_5_inch"><![CDATA[<b>Band Saws (Option 2 - Inch)</b><br/><br/><b>VF</b> - Feed rate [in/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>Z</b> - Number of teeth<br/><b>LB</b> - Bandsaw length [inch]]]></string>
 
-        <string name="info_6_m"><![CDATA[<b>Circular Saws (Option 1)</b><br/><br/><b>AS</b> - Unit cutting area [mm²/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>D</b> - Saw diameter [mm]<br/><b>Z</b> - Number of teeth<br/><b>L</b> - Cutting length [mm]]]></string>
-        <string name="info_6_inch"><![CDATA[<b>Circular Saws (Option 1 - Inch)</b><br/><br/><b>AS</b> - Unit cutting area [in²/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>D</b> - Saw diameter [inch]<br/><b>Z</b> - Number of teeth<br/><b>L</b> - Cutting length [inch]]]></string>
+    <string name="info_6_m"><![CDATA[<b>Circular Saws (Option 1)</b><br/><br/><b>AS</b> - Unit cutting area [mm²/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>D</b> - Saw diameter [mm]<br/><b>Z</b> - Number of teeth<br/><b>L</b> - Cutting length [mm]]]></string>
+    <string name="info_6_inch"><![CDATA[<b>Circular Saws (Option 1 - Inch)</b><br/><br/><b>AS</b> - Unit cutting area [in²/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>D</b> - Saw diameter [inch]<br/><b>Z</b> - Number of teeth<br/><b>L</b> - Cutting length [inch]]]></string>
 
-        <string name="info_7_m"><![CDATA[<b>Circular Saws (Option 2)</b><br/><br/><b>VF</b> - Feed rate [mm/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>Z</b> - Number of teeth<br/><b>D</b> - Saw diameter [mm]]]></string>
-        <string name="info_7_inch"><![CDATA[<b>Circular Saws (Option 2 - Inch)</b><br/><br/><b>VF</b> - Feed rate [in/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>Z</b> - Number of teeth<br/><b>D</b> - Saw diameter [inch]]]></string>
+    <string name="info_7_m"><![CDATA[<b>Circular Saws (Option 2)</b><br/><br/><b>VF</b> - Feed rate [mm/min]<br/><b>VC</b> - Cutting speed [m/min]<br/><b>Z</b> - Number of teeth<br/><b>D</b> - Saw diameter [mm]]]></string>
+    <string name="info_7_inch"><![CDATA[<b>Circular Saws (Option 2 - Inch)</b><br/><br/><b>VF</b> - Feed rate [in/min]<br/><b>VC</b> - Cutting speed [sfm]<br/><b>Z</b> - Number of teeth<br/><b>D</b> - Saw diameter [inch]]]></string>
 
-        <string name="info_3_m"><![CDATA[<b>Turning (Basic)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
-        <string name="info_3_inch"><![CDATA[<b>Turning (Basic - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
-
-
-        <string name="info_8_m"><![CDATA[<b>Cutting Parameters (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>AP</b> - Cutting depth [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]<br/><b>KC</b> - Specific cutting resistance [N/mm²]<br/><b>DM</b> - Material diameter [mm]]]></string>
-        <string name="info_8_inch"><![CDATA[<b>Cutting Parameters (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>AP</b> - Cutting depth [inch]<br/><b>FN</b> - Feed per revolution [in/rev]<br/><b>KC</b> - Specific cutting resistance [N/in²]<br/><b>DM</b> - Material diameter [inch]]]></string>
-
-        <string name="info_9_m"><![CDATA[<b>Boring (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
-        <string name="info_9_inch"><![CDATA[<b>Boring (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
-
-        <string name="info_10_m"><![CDATA[<b>Machine Time (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]<br/><b>LM</b> - Cutting path length [mm]]]></string>
-        <string name="info_10_inch"><![CDATA[<b>Machine Time (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]<br/><b>LM</b> - Cutting path length [inch]]]></string>
-
-        <string name="info_11_m"><![CDATA[<b>Volume Efficiency (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>AP</b> - Cutting depth [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
-        <string name="info_11_inch"><![CDATA[<b>Volume Efficiency (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>AP</b> - Cutting depth [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
-
-        <string name="info_12_m"><![CDATA[<b>Zero Point (Centring)</b><br/><br/>Calculates the center of a part between two points (A and B).<br/><br/><b>Formula:</b> (A + B) / 2]]></string>
-        <string name="info_12_inch"><![CDATA[<b>Zero Point (Centring - Inch)</b><br/><br/>Calculates the center of a part between two points (A and B).<br/><br/><b>Formula:</b> (A + B) / 2]]></string>
-
-        <string name="info_13_m"><![CDATA[<b>Threading (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Thread diameter [mm]<br/><b>P</b> - Thread pitch [mm]<br/><br/><i>Important: In thread turning, feed per revolution (FN) is always equal to thread pitch (P).</i>]]></string>
-        <string name="info_13_inch"><![CDATA[<b>Threading (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Thread diameter [inch]<br/><b>P</b> - Thread pitch [TPI]<br/><br/><i>Important: In thread turning, feed per revolution (FN) is always equal to thread pitch (P).</i>]]></string>
-
-        <string name="info_14_m"><![CDATA[<b>Surface Roughness (Ra)</b><br/><br/><b>FN</b> - Feed per revolution [mm/rev]<br/><b>RE</b> - Insert nose radius [mm]<br/><br/>Calculated theoretical surface roughness Ra in µm.]]></string>
-        <string name="info_14_inch"><![CDATA[<b>Surface Roughness (Ra - Inch)</b><br/><br/><b>FN</b> - Feed per revolution [in/rev]<br/><b>RE</b> - Insert nose radius [inch]<br/><br/>Calculated theoretical surface roughness Ra in µinch.]]></string>
+    <string name="info_3_m"><![CDATA[<b>Turning (Basic)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
+    <string name="info_3_inch"><![CDATA[<b>Turning (Basic - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
 
 
-        <string name="info_15_m"><![CDATA[<b>Taper Turning</b><br/><br/><b>D</b> - Large diameter [mm]<br/><b>d</b> - Small diameter [mm]<br/><b>L</b> - Taper length [mm]<br/><br/>Calculates the cone inclination angle and taper percentage.]]></string>
-        <string name="info_15_inch"><![CDATA[<b>Taper Turning (Inch)</b><br/><br/><b>D</b> - Large diameter [inch]<br/><b>d</b> - Small diameter [inch]<br/><b>L</b> - Taper length [inch]<br/><br/>Calculates the cone inclination angle and taper percentage.]]></string>
+    <string name="info_8_m"><![CDATA[
+    <b>Cutting Parameters (Turning)</b><br/><br/>
+    <b>DM</b> – Workpiece diameter [mm]<br/>
+    <b>VC</b> – Cutting speed [m/min]<br/>
+    <b>Fn</b> – Feed per revolution [mm/rev]<br/>
+    <b>AP</b> – Depth of cut (per side) [mm]<br/>
+    <b>KC</b> – Specific cutting force [N/mm²]
+]]></string>
+
+    <string name="info_8_inch"><![CDATA[
+    <b>Cutting Parameters (Turning - Inch)</b><br/><br/>
+    <b>DM</b> – Workpiece diameter [inch]<br/>
+    <b>VC</b> – Cutting speed [ft/min]<br/>
+    <b>Fn</b> – Feed per revolution [in/rev]<br/>
+    <b>AP</b> – Depth of cut (per side) [inch]<br/>
+    <b>KC</b> – Specific cutting force [lb/in²]
+]]></string>
+    <string name="info_9_m"><![CDATA[<b>Boring (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
+    <string name="info_9_inch"><![CDATA[<b>Boring (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
+
+    <string name="info_10_m"><![CDATA[<b>Machine Time (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Material diameter [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]<br/><b>LM</b> - Cutting path length [mm]]]></string>
+    <string name="info_10_inch"><![CDATA[<b>Machine Time (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Material diameter [inch]<br/><b>FN</b> - Feed per revolution [in/rev]<br/><b>LM</b> - Cutting path length [inch]]]></string>
+
+    <string name="info_11_m"><![CDATA[<b>Volume Efficiency (Turning)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>AP</b> - Cutting depth [mm]<br/><b>FN</b> - Feed per revolution [mm/rev]]]></string>
+    <string name="info_11_inch"><![CDATA[<b>Volume Efficiency (Turning - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>AP</b> - Cutting depth [inch]<br/><b>FN</b> - Feed per revolution [in/rev]]]></string>
+
+    <string name="info_12_m"><![CDATA[<b>Zero Point (Centring)</b><br/><br/>Calculates the center of a part between two points (A and B).<br/><br/><b>Formula:</b> (A + B) / 2]]></string>
+    <string name="info_12_inch"><![CDATA[<b>Zero Point (Centring - Inch)</b><br/><br/>Calculates the center of a part between two points (A and B).<br/><br/><b>Formula:</b> (A + B) / 2]]></string>
+
+    <string name="info_13_m"><![CDATA[<b>Threading (Milling)</b><br/><br/><b>VC</b> - Cutting speed [m/min]<br/><b>DM</b> - Thread diameter [mm]<br/><b>JT</b> - Thread pitch [mm]<br/><br/><i>Important: In tapping/threading, the feed per revolution (FN) is always equal to the thread pitch (P).</i>]]></string>
+    <string name="info_13_inch"><![CDATA[<b>Threading (Milling - Inch)</b><br/><br/><b>VC</b> - Cutting speed [sfm]<br/><b>DM</b> - Thread diameter [inch]<br/><b>JT</b> - Thread pitch [TPI]<br/><br/><i>Important: In tapping/threading, the feed per revolution (FN) is always equal to the thread pitch (P).</i>]]></string>
+
+    <string name="info_14_m"><![CDATA[<b>Surface Roughness (Ra)</b><br/><br/><b>FN</b> - Feed per revolution [mm/rev]<br/><b>RE</b> - Insert nose radius [mm]<br/><br/>Calculated theoretical surface roughness Ra in µm.]]></string>
+    <string name="info_14_inch"><![CDATA[<b>Surface Roughness (Ra - Inch)</b><br/><br/><b>FN</b> - Feed per revolution [in/rev]<br/><b>RE</b> - Insert nose radius [inch]<br/><br/>Calculated theoretical surface roughness Ra in µinch.]]></string>
+
+
+    <string name="info_15_m"><![CDATA[<b>Taper Turning</b><br/><br/><b>D</b> - Large diameter [mm]<br/><b>d</b> - Small diameter [mm]<br/><b>L</b> - Taper length [mm]<br/><br/>Calculates the cone inclination angle and taper percentage.]]></string>
+    <string name="info_15_inch"><![CDATA[<b>Taper Turning (Inch)</b><br/><br/><b>D</b> - Large diameter [inch]<br/><b>d</b> - Small diameter [inch]<br/><b>L</b> - Taper length [inch]<br/><br/>Calculates the cone inclination angle and taper percentage.]]></string>
 
     <string-array name="miling_spinner1_data">
         <item>Cutting Parameters</item>
@@ -148,6 +162,7 @@
         <item>Interpolation Parameters</item>
         <item>Boring Parameters</item>
         <item>ZeroPoint</item>
+        <item>Hardness Converter (Rm/HV/HB/HRC)</item>
     </string-array>
 
     <string-array name="tourning_spinner1_data">
@@ -165,10 +180,6 @@
         <item>Inch</item>
     </string-array>
 
-    <string-array name="spinner2_items">
-        <item>Polski</item>
-        <item>English</item>
-    </string-array>
     <string-array name="spinner3_items">
         <item>Metric thread</item>
         <item>Thread for inserts</item>
@@ -179,6 +190,7 @@
         <item>Kneading</item>
         <item>Thread for armored pipes</item>
     </string-array>
+
     <string name="settings_subs">Subscription</string>
     <string name="status">Your status:</string>
     <string name="subs2">Subscription</string>
@@ -217,5 +229,100 @@
     <string name="titanium">Titanium</string>
     <string name="brass">Brass</string>
     <string name="hardened_steel">Hardened steel (&gt; 50 HRC)</string>
-
+    <string name="show_shop">Go ahead</string>
+    <string name="select_material_iso">Select material:</string>
+    <string name="material_steel">P - Steel</string>
+    <string name="material_stainless">M - Stainless</string>
+    <string name="material_cast_iron">K - Cast Iron</string>
+    <string name="material_non_ferrous">N - Non-ferrous</string>
+    <string name="material_titanium_s_alloy">S - Titanium/S-Alloy</string>
+    <string name="material_hardened">H - Hardened</string>
+    <string name="M">M</string>
+    <string name="K">K</string>
+    <string name="N">N</string>
+    <string name="S">S</string>
+    <string name="H">H</string>
+    <string name="d">d</string>
+    <string name="vc_expert_title">How to choose Vc?</string>
+    <string name="vc_expert_min">Choose Minimum: If you have unstable clamping, a long tool, or work without cooling.</string>
+    <string name="vc_expert_opt">Choose Optimum: Standard working conditions.</string>
+    <string name="vc_expert_max">Choose Maximum: New machine, very rigid clamping, and intensive cooling.</string>
+    <string name="step1_category">Step 1: Choose category</string>
+    <string name="step2_diameter">Step 2: Diameter (mm)</string>
+    <string name="step3_model">Step 3: Choose model/length</string>
+    <string name="step1_system">Step 1: Choose system</string>
+    <string name="step2_radius">Step 2: Choose radius rε</string>
+    <string name="cat_tap">Tap</string>
+    <string name="cat_forming_tap">Forming Tap</string>
+    <string name="cat_eg_tap">EG Tap (Helicoil)</string>
+    <string name="cat_mill">Milling Cutter</string>
+    <string name="cat_drill">Drill</string>
+    <string name="cat_reamer">Reamer</string>
+    <string name="cat_boring">Boring Tool</string>
+    <string name="drill_hint_label">Recommended drill:</string>
+    <string name="params_loaded">Ceratizit parameters loaded</string>
+    <string name="vc_warn_high">Warning: Vc exceeds tool limit!</string>
+    <string name="vc_info_low">Note: Vc is below recommended range.</string>
+    <string name="select_tool_hint">Select Material &amp; Tool</string>
+    <string name="label_min">Min</string>
+    <string name="label_opt">Opt</string>
+    <string name="label_max">Max</string>
+    <string name="hint_hole_diameter">Bore diameter Dm</string>
+    <string name="hint_pitch">Pitch P [mm]</string>
+    <string name="hint_feed_rev">fn [mm/rev]</string>
+    <string name="hint_feed_tooth">fz [mm/t]</string>
+    <string name="cat_sink">Countersink</string>
+    <string name="cat_multi">Multifunction tools</string>
+    <string name="parameters_load">Parameters loaded</string>
+    <string name="error_no_tool_for_material">No tool available for this material</string>
+    <string name="cat_threading_turning">Thread turning</string>
+    <string name="cat_inserts">Inserts</string>
+    <string name="cat_turning">Turning</string>
+    <string name="cat_turning_transverse">Transverse turning</string>
+    <string name="cat_boring_op">Boring</string>
+    <string name="cat_turning_mini">Mini turning</string>
+    <string name="model_finishing">Finishing</string>
+    <string name="model_medium">Medium</string>
+    <string name="model_roughing">Roughing</string>
+    <string name="model_boring">Boring</string>
+    <string name="model_light_grooving">Light plunging</string>
+    <string name="model_steel">Steel</string>
+    <string name="model_grooves">Grooves</string>
+    <string name="model_drill_ref">Drill</string>
+    <string name="model_tap">Tap</string>
+    <string name="res_f_m">F (mm/min):</string>
+    <string name="res_n_m">n (rev/min):</string>
+    <string name="res_f_inch">F (in/min):</string>
+    <string name="res_n_inch">n (RPM):</string>
+    <string name="res_tc">Tc (min):</string>
+    <string name="res_ra">Ra (µm):</string>
+    <string name="res_angle">Alpha (°):</string>
+    <string name="fit_hole_label">Hole: %1$.3f / %2$.3f mm</string>
+    <string name="fit_shaft_label">Shaft: %1$.3f / %2$.3f mm</string>
+    <string name="fit_clearance_label">Clearance min/max: %1$.3f / %2$.3f mm</string>
+    <string name="fit_interference_label">Interference min/max: %1$.3f / %2$.3f mm</string>
+    <string name="status_clearance">CLEARANCE FIT</string>
+    <string name="status_transition">TRANSITION FIT</string>
+    <string name="status_interference">INTERFERENCE FIT (PRESS FIT)</string>
+    <string name="diameter_hint">Nominal diameter (mm)</string>
+    <string name="hole_hint">Hole (e.g., H7)</string>
+    <string name="shaft_hint">Shaft (e.g., h6)</string>
+    <string name="reset">Reset</string>
+    <string name="tolerances">ISO Tolerances</string>
+    <string name="desc_clearance">Elements always maintain clearance, allowing free movement.</string>
+    <string name="desc_transition">Both clearance and interference are possible. Requires force assembly (e.g., rubber mallet).</string>
+    <string name="desc_interference">Parts always overlap. Requires a press or thermal assembly.</string>
+    <string name="hardness_rm">Tensile Strength Rm [N/mm²]</string>
+    <string name="hardness_hv">Vickers (HV)</string>
+    <string name="hardness_hb">Brinell (HB)</string>
+    <string name="hardness_hrc">Rockwell (HRC)</string>
+    <string name="hardness_res_title">Conversion Results</string>
+    <string name="error_out_of_range">Value out of range</string>
+    <string name="info_hardness">The calculator allows for conversion between Rm, HV, HB, and HRC scales according to ISO 18265. Enter a value in any field to get the remaining results.</string>
+    <string name="error_only_one_value">Please enter only one value for conversion.</string>
+    <string name="subs_trial_button">Start 7 days for free\nthen %s / year</string>
+    <string name="subs_annual_button">Annual subscription: %s</string>
+    <string name="subs_buy_button">Buy subscription</string>
+    <string name="update_downloaded">Update has been downloaded.</string>
+    <string name="restart_app">RESTART</string>
 </resources>

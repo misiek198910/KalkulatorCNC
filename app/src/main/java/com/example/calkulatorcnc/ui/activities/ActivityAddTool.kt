@@ -1,11 +1,19 @@
 package com.example.calkulatorcnc.ui.activities
 
-import android.content.Intent
+import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -13,23 +21,29 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
+import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.entity.Tool
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import getMaterialsList
-import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
-import android.view.ViewGroup
-import com.example.calkulatorcnc.BuildConfig
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
+import getMaterialsList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.core.graphics.toColorInt
+import getIsoGroupForMaterial
+import androidx.core.graphics.drawable.toDrawable
 
 class ActivityAddTool : AppCompatActivity() {
     private var adView: AdView? = null
@@ -42,8 +56,30 @@ class ActivityAddTool : AppCompatActivity() {
     private lateinit var etF: EditText
     private lateinit var etS: EditText
     private lateinit var etNotes: EditText
-
     private var isEditMode: Boolean = false
+    private lateinit var analytics: FirebaseAnalytics
+
+    private fun updateMaterialUI(materialName: String?) {
+        val isoGroup = getIsoGroupForMaterial(this, materialName)
+        val color = when (isoGroup) {
+            "P" -> "#0091EA".toColorInt()
+            "M" -> "#FFEA00".toColorInt()
+            "K" -> "#D50000".toColorInt()
+            "N" -> "#00C853".toColorInt()
+            "S" -> "#FF6D00".toColorInt()
+            "H" -> "#9E9E9E".toColorInt()
+            else -> android.graphics.Color.TRANSPARENT
+        }
+
+        if (color != android.graphics.Color.TRANSPARENT) {
+            etWorkpiece.background = getIsoStripDrawable(color)
+            etWorkpiece.setPadding((20 * resources.displayMetrics.density).toInt(), 0, 0, 0)
+        } else {
+            // Powrót do standardowego stylu
+            etWorkpiece.setBackgroundResource(R.drawable.edittext_style)
+            etWorkpiece.setPadding((12 * resources.displayMetrics.density).toInt(), 0, 0, 0)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +95,7 @@ class ActivityAddTool : AppCompatActivity() {
         loadDataFromIntent()
         setupListeners()
         setupMaterialSelection()
-
+        analytics = Firebase.analytics
         mainLayout.setOnClickListener { hideKeyboard() }
     }
 
@@ -150,6 +186,13 @@ class ActivityAddTool : AppCompatActivity() {
         etNotes = findViewById(R.id.editText5)
         btnAdd = findViewById(R.id.button1)
         btnClose = findViewById(R.id.button2)
+
+        applyChromebookFix(etName)
+        applyChromebookFix(etF)
+        applyChromebookFix(etS)
+        applyChromebookFix(etWorkpiece) // Tu zachowamy ostrożność ze względu na dialog
+        applyChromebookFix(etNotes)
+
         onBackPressedDispatcher.addCallback(this) {
             finish()
         }
@@ -160,8 +203,11 @@ class ActivityAddTool : AppCompatActivity() {
             etName.setText(intent.getStringExtra("toolName") ?: "")
             etF.setText(intent.getStringExtra("toolF") ?: "")
             etS.setText(intent.getStringExtra("toolS") ?: "")
-            etWorkpiece.setText(intent.getStringExtra("workpiece") ?: "")
             etNotes.setText(intent.getStringExtra("notes") ?: "")
+
+            val workpiece = intent.getStringExtra("workpiece") ?: ""
+            etWorkpiece.setText(workpiece)
+            updateMaterialUI(workpiece)
         }
     }
 
@@ -179,36 +225,74 @@ class ActivityAddTool : AppCompatActivity() {
     }
 
     private fun showMaterialSelectionDialog() {
-        val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
         val materials = getMaterialsList(this)
-
         val dialogView = LayoutInflater.from(this).inflate(R.layout.window_materials_modern, null)
         val container = dialogView.findViewById<LinearLayout>(R.id.materialsContainer)
+
+        // Zapewniamy pełną przezroczystość kontenera pod kafelkami
+        container.setBackgroundColor(Color.TRANSPARENT)
+
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
+        // Obsługa przycisku zamknij
+        dialogView.findViewById<Button>(R.id.btnCancelMaterials)?.setOnClickListener {
+            dialog.dismiss()
+        }
+
         materials.forEach { material ->
             val itemView = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
-            itemView.findViewById<TextView>(R.id.materialName).text = material.name
+            val tvMaterial = itemView.findViewById<TextView>(R.id.materialName)
+
+            tvMaterial.text = "${material.name} (${material.isoGroup})"
+            tvMaterial.setTextColor(android.graphics.Color.WHITE)
+
+            val color = when(material.isoGroup) {
+                "P" -> "#0091EA".toColorInt()
+                "M" -> "#FFEA00".toColorInt()
+                "K" -> "#D50000".toColorInt()
+                "N" -> "#00C853".toColorInt()
+                "S" -> "#FF6D00".toColorInt()
+                "H" -> "#9E9E9E".toColorInt()
+                else -> Color.TRANSPARENT
+            }
+
+            // Nakładamy przezroczysty styl z paskiem
+            itemView.background = getIsoStripDrawable(color)
+            tvMaterial.setPadding((20 * resources.displayMetrics.density).toInt(), 0, 0, 0)
 
             itemView.setOnClickListener {
                 etWorkpiece.setText(material.name)
-                etWorkpiece.isFocusable = false
+                updateMaterialUI(material.name)
                 dialog.dismiss()
             }
             container.addView(itemView)
         }
-
-        val otherItem = LayoutInflater.from(this).inflate(R.layout.item_material, container, false)
-        otherItem.findViewById<TextView>(R.id.materialName).text = getString(R.string.other)
-        otherItem.setOnClickListener {
-            etWorkpiece.isFocusableInTouchMode = true
-            etWorkpiece.setText("")
-            etWorkpiece.requestFocus()
-            dialog.dismiss()
-        }
-        container.addView(otherItem)
         dialog.show()
+    }
+
+    private fun getIsoStripDrawable(isoColor: Int): android.graphics.drawable.Drawable {
+        val density = resources.displayMetrics.density
+        val stripWidth = (5 * density).toInt()
+
+        val background = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.bg_search_input)
+            ?: Color.TRANSPARENT.toDrawable()
+
+        // 2. WARSTWA PASKA ISO
+        val strip = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            setColor(isoColor)
+            cornerRadii = floatArrayOf(8 * density, 8 * density, 0f, 0f, 0f, 0f, 8 * density, 8 * density)
+        }
+
+        val layers = arrayOf(background, strip)
+        val layerDrawable = android.graphics.drawable.LayerDrawable(layers)
+
+        // Ustawiamy pasek ISO na lewej krawędzi
+        layerDrawable.setLayerWidth(1, stripWidth)
+        layerDrawable.setLayerGravity(1, android.view.Gravity.START)
+
+        return layerDrawable
     }
 
     private fun saveAndReturn() {
@@ -248,5 +332,43 @@ class ActivityAddTool : AppCompatActivity() {
     private fun hideKeyboard() {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
         currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
+    }
+
+    private fun applyChromebookFix(editText: EditText) {
+        editText.apply {
+            isFocusable = true
+            isFocusableInTouchMode = true
+            isClickable = true
+            elevation = (resources.displayMetrics.density * 2)
+
+            setOnTouchListener { v, event ->
+                if (event.action == android.view.MotionEvent.ACTION_UP) {
+                    if (v.isFocusable) {
+                        // Dla normalnych pól tekstowych wywołujemy klawiaturę
+                        v.requestFocus()
+                        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                        imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+                        // Zwracamy false, by system mógł dokończyć obsługę zdarzenia (np. kursor)
+                        return@setOnTouchListener false
+                    } else {
+                        // Dla etWorkpiece (które ma isFocusable = false w setupMaterialSelection)
+                        v.performClick()
+                        // KLUCZOWA ZMIANA: Zwracamy true, aby skonsumować zdarzenie i zapobiec
+                        // ponownemu otwarciu dialogu przez systemowy OnClickListener
+                        return@setOnTouchListener true
+                    }
+                }
+                false
+            }
+        }
+    }
+
+
+    override fun onResume() {
+        super.onResume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Dodaj Narzędzie")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivityAddTool")
+        }
     }
 }

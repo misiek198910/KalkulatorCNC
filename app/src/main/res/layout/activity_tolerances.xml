@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background">
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0.80"
+        android:background="@color/aplication_new_blue"
+        android:clickable="false"
+        android:focusable="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/customHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/aplication_new_blue"
+        android:orientation="vertical"
+        android:paddingBottom="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            app:contentInsetStart="0dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <ImageButton
+                    android:id="@+id/button_back"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@drawable/arrow_back_white_24"
+                    app:tint="@color/white"
+                    tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tolerances"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_marginStart="12dp"
+                        android:src="@drawable/tolerances_iso"
+                        tools:ignore="ContentDescription" />
+                </LinearLayout>
+            </RelativeLayout>
+        </androidx.appcompat.widget.Toolbar>
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/toleranceScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginBottom="16dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/customHeader">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="45dp"
+                    android:layout_height="45dp"
+                    android:layout_marginEnd="12dp"
+                    android:src="@drawable/rotate"
+                    tools:ignore="ContentDescription" />
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/diameter_hint"
+                    android:textColorHint="@color/textColor_hint"
+                    app:boxStrokeColor="@color/button_dark_blue_1"
+                    app:hintTextColor="@color/white">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/editTextDiameter"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_search_input"
+                        android:inputType="numberDecimal"
+                        android:padding="12dp"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        tools:ignore="VisualLintTextFieldSize" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:hint="@string/hole_hint"
+                    android:textColorHint="@color/textColor_hint"
+                    app:boxStrokeColor="@color/button_dark_blue_1"
+                    app:hintTextColor="@color/white">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoCompleteHole"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_search_input"
+                        android:inputType="none"
+                        android:padding="12dp"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        tools:ignore="LabelFor,SpeakableTextPresentCheck" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:hint="@string/shaft_hint"
+                    android:textColorHint="@color/textColor_hint"
+                    app:boxStrokeColor="@color/button_dark_blue_1"
+                    app:hintTextColor="@color/white">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/autoCompleteShaft"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_search_input"
+                        android:inputType="none"
+                        android:padding="12dp"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        tools:ignore="LabelFor,SpeakableTextPresentCheck" />
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/resultCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_search_input"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:id="@+id/tvFitStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textSize="19sp"
+                    android:textStyle="bold"
+                    tools:text="@string/status_clearance" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@color/button_dark_blue_1" />
+
+                <TextView
+                    android:id="@+id/tvHoleValues"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textSize="17sp"
+                    tools:text="Otwór: 20.000 / 20.021 mm" />
+
+                <TextView
+                    android:id="@+id/tvShaftValues"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textColor="@color/white"
+                    android:textSize="17sp"
+                    tools:text="Wałek: 19.987 / 20.000 mm" />
+
+                <TextView
+                    android:id="@+id/tvClearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textColor="@color/textColor_hint"
+                    android:textSize="16sp"
+                    android:textStyle="italic"
+                    tools:text="Luz min/max: 0.000 / 0.034 mm" />
+                <ImageButton
+                    android:id="@+id/btnCopyResults"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:layout_marginTop="15dp"
+                    android:src="@drawable/ic_copy"
+                    app:tint="@color/white" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        app:layout_constraintBottom_toTopOf="@+id/adContainerLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnReset"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/button_style"
+            android:padding="14dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_refresh"
+            app:tint="@color/white"
+            tools:ignore="SpeakableTextPresentCheck" />
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnInfo"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="12dp"
+            android:background="@drawable/button_style"
+            android:text="@string/i"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/adContainerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <FrameLayout
+            android:id="@+id/adContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

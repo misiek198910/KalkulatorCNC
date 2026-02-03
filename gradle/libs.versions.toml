@@ -17,6 +17,9 @@ ksp = "2.0.21-1.0.28"
 firebaseBom = "33.7.0"
 googleServices = "4.4.2"
 glide = "4.16.0"
+activity = "1.8.0"
+constraintlayout = "2.1.4"
+playAppUpdate = "2.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -48,9 +51,14 @@ lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-kt
 # Google Services
 play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playAds" }
 user-messaging-platform = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
+play-app-update = { group = "com.google.android.play", name = "app-update", version.ref = "playAppUpdate" }
+play-app-update-ktx = { group = "com.google.android.play", name = "app-update-ktx", version.ref = "playAppUpdate" }
 
 # Utils
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

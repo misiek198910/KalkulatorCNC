@@ -1,22 +1,34 @@
 package com.example.calkulatorcnc.ui.activities
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.billing.SubscriptionStatus
+import com.example.calkulatorcnc.data.db.AppDatabase
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.ump.ConsentDebugSettings
 import com.google.android.ump.ConsentRequestParameters
 import com.google.android.ump.UserMessagingPlatform
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import java.io.File
 
 @SuppressLint("CustomSplashScreen")
 class ActivitySplash : AppCompatActivity() {
@@ -26,16 +38,19 @@ class ActivitySplash : AppCompatActivity() {
         private const val AD_TIMEOUT_MS = 8000L
     }
 
+    private var isDatabaseReady = false
+    private var isAdLogicFinished = false
     private var appOpenAd: AppOpenAd? = null
     private var isShowingAd = false
     private var isDismissed = false
-    private var isConsentStarted = false // FLAG: Zapobiega podwójnemu uruchomieniu logiki
+    private var isConsentStarted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_splash)
 
+        initDatabaseAsync()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -43,8 +58,6 @@ class ActivitySplash : AppCompatActivity() {
         }
 
         val subManager = SubscriptionManager.getInstance(applicationContext)
-
-        // Obserwujemy status - upewniamy się, że logika odpali się tylko RAZ
         subManager.subscriptionStatus.observe(this) { status ->
             if (isDismissed || isConsentStarted) return@observe
 
@@ -61,7 +74,74 @@ class ActivitySplash : AppCompatActivity() {
             }
         }
     }
+    private fun initDatabaseAsync() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    // 1. Inicjalizacja bazy (Tu Room odpala Twoją migrację 7->8)
+                    val db = AppDatabase.getDatabase(applicationContext)
 
+                    var count = db.toolNewDao().getToolsCount()
+
+                    // 2. REPARACJA: Jeśli migracja nie skopiowała danych (count == 0)
+                    if (count == 0) {
+                        //Log.w("DB_INIT", "Tabela pusta! Próba ręcznej naprawy...")
+
+                        // Upewnij się, że nazwa pliku w assets to na pewno "data.db" (lub "database.db")
+                        val assetName = "data.db"
+                        AppDatabase.copyAssetToTempFile(applicationContext, assetName)
+
+                        val tempDbFile = File(applicationContext.cacheDir, "temp_data.db")
+                        if (tempDbFile.exists()) {
+                            val tempDbPath = tempDbFile.absolutePath
+                            val sdb = db.openHelper.writableDatabase
+
+                            try {
+                                // Ręczne kopiowanie poza transakcją Room
+                                sdb.execSQL("ATTACH DATABASE '$tempDbPath' AS temp_db")
+                                sdb.execSQL("INSERT OR REPLACE INTO cnc_tools SELECT * FROM temp_db.cnc_tools")
+                                //Log.d("DB_INIT", "Ręczna reparacja zakończona sukcesem")
+                            } catch (e: Exception) {
+                                //Log.e("DB_INIT", "Błąd podczas ręcznego kopiowania: ${e.message}")
+                                throw e
+                            } finally {
+                                // Zawsze odłączamy bazę, żeby zwolnić plik
+                                try {
+                                    sdb.execSQL("DETACH DATABASE temp_db")
+                                } catch (e: Exception) {
+                                    //Log.e("DB_INIT", "Nie można odłączyć temp_db: ${e.message}")
+                                }
+                            }
+                            count = db.toolNewDao().getToolsCount()
+                        }
+                    }
+
+                    // 3. Dopiero gdy wszystko gotowe, usuwamy plik tymczasowy
+                    AppDatabase.cleanupTempDatabase(applicationContext)
+
+                    count // Zwracamy liczbę narzędzi
+                }
+
+                if (result == 0) {
+                    Toast.makeText(applicationContext, "Uwaga: Baza narzędzi jest pusta", Toast.LENGTH_LONG).show()
+                } else {
+                    //Log.d("DB_INIT", "Baza zainicjowana, liczba rekordów: $result")
+                }
+
+                isDatabaseReady = true
+                tryNavigate()
+
+            } catch (e: Exception) {
+                val errorMsg = e.message ?: "Nieznany błąd bazy"
+                //Log.e("DB_INIT", "KRYTYCZNY BŁĄD: $errorMsg")
+                Toast.makeText(applicationContext, "BŁĄD BAZY: $errorMsg", Toast.LENGTH_LONG).show()
+
+                // Pozwalamy wejść do aplikacji mimo błędu bazy, żeby nie blokować użytkownika
+                isDatabaseReady = true
+                tryNavigate()
+            }
+        }
+    }
     private fun setupConsentAndLoadAd() {
 
         val debugSettings = ConsentDebugSettings.Builder(this)
@@ -176,7 +256,7 @@ class ActivitySplash : AppCompatActivity() {
         ad.show(this)
     }
 
-    private fun navigateToMainApp() {
+    private fun actuallyNavigate() {
         if (isDismissed) return
         isDismissed = true
 
@@ -184,5 +264,19 @@ class ActivitySplash : AppCompatActivity() {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+    }
+
+    private fun tryNavigate() {
+        // Wchodzimy tylko gdy:
+        // 1. Logika reklam się skończyła (reklama zamknięta lub pominięta)
+        // 2. Baza danych jest w pełni gotowa
+        if (isDatabaseReady && isAdLogicFinished) {
+            actuallyNavigate()
+        }
+    }
+
+    private fun navigateToMainApp() {
+        isAdLogicFinished = true
+        tryNavigate()
     }
 }

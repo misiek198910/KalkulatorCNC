@@ -36,6 +36,11 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
 import android.view.ViewGroup
+import com.example.calkulatorcnc.ui.languages.LanguageManager
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 
 class ActivitySettings : AppCompatActivity() {
 
@@ -44,6 +49,7 @@ class ActivitySettings : AppCompatActivity() {
     private lateinit var adContainer: FrameLayout
     private var adView: AdView? = null
     private val prefs = ClassPrefs()
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,9 +60,11 @@ class ActivitySettings : AppCompatActivity() {
         initViews()
         setupAds()
         updateStatusTexts()
+        analytics = Firebase.analytics
 
         onBackPressedDispatcher.addCallback(this) { finish() }
     }
+
     private fun createViewAEdgetoEdgeForAds() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
@@ -69,13 +77,10 @@ class ActivitySettings : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
 
-            // 1. Tło płynie pod systemowe paski
             mainRoot.setPadding(0, 0, 0, 0)
 
-            // 2. Nagłówek - padding góra (bezpieczna strefa dla zegara)
             customHeader?.updatePadding(top = systemBars.top)
 
-            // 3. Reklama - margines dół i boki (bezpieczna strefa nawigacji)
             adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom
                 leftMargin = systemBars.left
@@ -84,8 +89,6 @@ class ActivitySettings : AppCompatActivity() {
 
             insets
         }
-
-        // 4. Inicjalizacja reklamy adaptacyjnej po ułożeniu widoku
         adContainer?.post {
             setupAds()
         }
@@ -99,25 +102,54 @@ class ActivitySettings : AppCompatActivity() {
         findViewById<View>(R.id.button_back).setOnClickListener { finish() }
         findViewById<View>(R.id.card_system).setOnClickListener { showSystemDialog() }
         findViewById<View>(R.id.card_language).setOnClickListener { showLanguageDialog() }
-        findViewById<View>(R.id.card_btn2).setOnClickListener { startActivity(Intent(this, ActivityApps::class.java)) }
+        findViewById<View>(R.id.card_btn2).setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    ActivityApps::class.java
+                )
+            )
+        }
         findViewById<View>(R.id.card_btn3).setOnClickListener { openMarketPage(packageName) }
         findViewById<View>(R.id.card_btn4).setOnClickListener {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://buycoffee.to/mivs/MojaParafia"))
+            val browserIntent = Intent(
+                Intent.ACTION_VIEW,
+                "https://buycoffee.to/mivs/MojaParafia".toUri()
+            )
             startActivity(browserIntent)
         }
-        findViewById<View>(R.id.card_btn5).setOnClickListener { startActivity(Intent(this, ActivitySubscription::class.java)) }
-        findViewById<View>(R.id.card_privacy).setOnClickListener {startActivity(Intent(this,ActivityPrivacyPolicy::class.java))}
+        findViewById<View>(R.id.card_btn5).setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    ActivitySubscription::class.java
+                )
+            )
+        }
+        findViewById<View>(R.id.card_privacy).setOnClickListener {
+            startActivity(
+                Intent(
+                    this,
+                    ActivityPrivacyPolicy::class.java
+                )
+            )
+        }
     }
 
     private fun updateStatusTexts() {
-        // Pokazywanie aktualnego ustawienia pod główną nazwą kafli
+
         val sysPos = prefs.loadPrefInt(this, "calcsys_data")
         val sysArray = resources.getStringArray(R.array.spinner1_items)
         tvCurrentSystem.text = sysArray.getOrElse(sysPos) { "" }
 
-        val langPos = prefs.loadPrefInt(this, "language_data")
-        val langArray = resources.getStringArray(R.array.spinner2_items)
-        tvCurrentLang.text = langArray.getOrElse(langPos) { "" }
+        val currentIso = AppCompatDelegate.getApplicationLocales()[0]?.language
+            ?: prefs.loadPrefString(this, "language_iso")
+
+        val currentLanguageName = LanguageManager.supportedLanguages
+            .find { it.isoCode == currentIso }?.name ?: ""
+
+        tvCurrentLang.text = currentLanguageName
+
     }
 
     private fun showSystemDialog() {
@@ -130,17 +162,23 @@ class ActivitySettings : AppCompatActivity() {
     }
 
     private fun showLanguageDialog() {
-        val options = resources.getStringArray(R.array.spinner2_items)
-        val current = prefs.loadPrefInt(this, "language_data")
-        createCustomSelectionDialog(getString(R.string.language), options, current) { which ->
-            prefs.savePrefInt(this, "language_data", which)
-            val iso = if (which == 0) "pl" else "en"
-            val appLocale = LocaleListCompat.forLanguageTags(iso)
+        val options = LanguageManager.supportedLanguages.map { it.name }.toTypedArray()
+
+        val currentIso = AppCompatDelegate.getApplicationLocales()[0]?.language ?: "en"
+        val currentIndex = LanguageManager.getIndexByIsoCode(currentIso)
+
+        createCustomSelectionDialog(getString(R.string.language), options, currentIndex) { which ->
+            val selectedIso = LanguageManager.getIsoCodeByIndex(which)
+
+            prefs.savePrefString(this, "language_iso", selectedIso)
+
+            val appLocale = LocaleListCompat.forLanguageTags(selectedIso)
             AppCompatDelegate.setApplicationLocales(appLocale)
         }
     }
 
     private fun createCustomSelectionDialog(title: String, options: Array<String>, selectedIndex: Int, onSelected: (Int) -> Unit) {
+
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_selection_modern, null)
         val dialog = AlertDialog.Builder(this).setView(dialogView).create()
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
@@ -159,19 +197,22 @@ class ActivitySettings : AppCompatActivity() {
                 setPaddingRelative(dpToPx(16), 0, dpToPx(16), 0)
                 textSize = 18f
 
-                        // Stylizacja zaznaczenia
-                        if (index == selectedIndex) {
-                            setTextColor("#FF9800".toColorInt())
-                            setTypeface(null, Typeface.BOLD)
-                            setBackgroundResource(R.drawable.bg_search_input)
-                        } else {
-                            setTextColor(Color.WHITE)
-                            setTypeface(null, Typeface.NORMAL)
-                            // Standardowe tło z efektem kliknięcia
-                            val outValue = TypedValue()
-                            context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
-                            setBackgroundResource(outValue.resourceId)
-                        }
+                if (index == selectedIndex) {
+                    setTextColor("#FF9800".toColorInt())
+                    setTypeface(null, Typeface.BOLD)
+                    setBackgroundResource(R.drawable.bg_search_input)
+                } else {
+                    setTextColor(Color.WHITE)
+                    setTypeface(null, Typeface.NORMAL)
+                    // Standardowe tło z efektem kliknięcia
+                    val outValue = TypedValue()
+                    context.theme.resolveAttribute(
+                        android.R.attr.selectableItemBackground,
+                        outValue,
+                        true
+                    )
+                    setBackgroundResource(outValue.resourceId)
+                }
 
                 setOnClickListener {
                     onSelected(index)
@@ -182,7 +223,8 @@ class ActivitySettings : AppCompatActivity() {
 
             if (index < options.size - 1) {
                 val divider = View(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+                    layoutParams =
+                        LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
                     setBackgroundColor("#1AFFFFFF".toColorInt()) // Bardzo delikatna biel
                 }
                 container.addView(divider)
@@ -251,7 +293,16 @@ class ActivitySettings : AppCompatActivity() {
         val adWidth = (adWidthPixels / density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
     }
+
     private fun dpToPx(dp: Int): Int {
         return (dp * resources.displayMetrics.density).toInt()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Ustawienia")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivitySettings")
+        }
     }
 }

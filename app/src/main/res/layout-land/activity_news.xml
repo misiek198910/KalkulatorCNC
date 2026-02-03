@@ -13,6 +13,8 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:alpha="0.80"
+        android:clickable="false"
+        android:focusable="false"
         android:background="@color/aplication_new_blue"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

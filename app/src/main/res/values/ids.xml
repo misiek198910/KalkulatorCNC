@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="vc_chips_container" type="id" />
+    <item name="tv_drill_hint_text" type="id" />
+</resources>

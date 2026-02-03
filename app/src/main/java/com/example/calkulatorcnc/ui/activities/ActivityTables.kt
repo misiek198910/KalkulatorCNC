@@ -21,6 +21,10 @@ import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.data.db.AppDatabase
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.google.android.gms.ads.*
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -34,6 +38,7 @@ class ActivityTables : AppCompatActivity() {
     private lateinit var buttonsPanel: LinearLayout
     private lateinit var tvTableHeader: TextView
     private var adView: AdView? = null
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +52,8 @@ class ActivityTables : AppCompatActivity() {
         spinner1.setSelection(spinnerIdx)
 
         onBackPressedDispatcher.addCallback(this) { finish() }
+
+        analytics = Firebase.analytics
     }
 
     private fun createViewAEdgetoEdgeForAds() {
@@ -277,6 +284,10 @@ class ActivityTables : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         adView?.resume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Tabele")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivityTables")
+        }
     }
 
     override fun onDestroy() {

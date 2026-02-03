@@ -22,6 +22,10 @@ import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.google.android.gms.ads.*
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 
 class ActivityApps : AppCompatActivity() {
     private var toolbarTitle: TextView? = null
@@ -30,6 +34,7 @@ class ActivityApps : AppCompatActivity() {
     private lateinit var adContainer: FrameLayout
     private var adView: AdView? = null
 
+    private lateinit var analytics: FirebaseAnalytics
     private class AppItem(val iconResId: Int, val titleResId: Int, val appLink: String?)
 
     private val appItems: Array<AppItem> = arrayOf(
@@ -49,6 +54,7 @@ class ActivityApps : AppCompatActivity() {
         createViewAEdgetoEdgeForAds()
         setupToolbar()
         setupAppList()
+        analytics = Firebase.analytics
     }
 
     private fun createViewAEdgetoEdgeForAds() {
@@ -253,6 +259,15 @@ class ActivityApps : AppCompatActivity() {
     }
 
     override fun onPause() { adView?.pause(); super.onPause() }
-    override fun onResume() { super.onResume(); adView?.resume() }
+
+    override fun onResume() {
+        super.onResume();
+        adView?.resume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "InneAplikacje")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivityApps")
+        }
+    }
+
     override fun onDestroy() { adView?.destroy(); super.onDestroy() }
 }

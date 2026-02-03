@@ -17,6 +17,10 @@ import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.BillingManager
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.google.android.gms.ads.*
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 
 class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerListener {
 
@@ -27,6 +31,7 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     private lateinit var adContainerLayout: FrameLayout
     private lateinit var adContainer: FrameLayout
     private var adView: AdView? = null
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +41,7 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
         createViewAEdgetoEdgeForAds()
         initUI()
         setupBilling()
+        analytics = Firebase.analytics
     }
 
     private fun createViewAEdgetoEdgeForAds() {
@@ -91,11 +97,11 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
             val isPremium = billingManager?.isPremium?.value ?: false
 
             if (!isPremium && details != null) {
-                val offerDetails = details.subscriptionOfferDetails?.firstOrNull()
-                val pricingPhase = offerDetails?.pricingPhases?.pricingPhaseList?.firstOrNull()
-                val price = pricingPhase?.formattedPrice ?: "..."
+                // KLUCZOWA ZMIANA: Korzystamy z nowej funkcji managera
+                // Funkcja sama sprawdzi czy jest trial i zwróci odpowiedni tekst
+                val offerInfo = billingManager?.getSubscriptionOfferInfo(this, details)
 
-                buyButton.text = "${getString(R.string.premium_required_button)} ($price)"
+                buyButton.text = offerInfo
                 buyButton.isEnabled = true
             } else if (isPremium) {
                 buyButton.text = getString(R.string.settings_subs)
@@ -225,7 +231,14 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     override fun onPause() { adView?.pause(); super.onPause() }
-    override fun onResume() { super.onResume(); adView?.resume() }
+
+    override fun onResume() {
+        super.onResume(); adView?.resume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "Subskrypcje")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivitySubscription")
+        }}
+
     override fun onDestroy() {
         adView?.destroy()
         billingManager?.setListener(null)

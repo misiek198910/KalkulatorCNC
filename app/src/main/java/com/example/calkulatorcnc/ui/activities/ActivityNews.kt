@@ -21,6 +21,10 @@ import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.entity.NewsItem
 import com.example.calkulatorcnc.ui.adapters.NewsAdapter
 import com.google.android.gms.ads.*
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.analytics
+import com.google.firebase.analytics.logEvent
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
@@ -29,6 +33,7 @@ class ActivityNews : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
     private var adView: AdView? = null
+    private lateinit var analytics: FirebaseAnalytics
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +43,7 @@ class ActivityNews : AppCompatActivity() {
         setupEdgeToEdge()
         initUI()
         fetchNewsFromFirebase()
+        analytics = Firebase.analytics
     }
 
     private fun setupEdgeToEdge() {
@@ -116,5 +122,13 @@ class ActivityNews : AppCompatActivity() {
         var width = container.width.toFloat()
         if (width == 0f) width = resources.displayMetrics.widthPixels.toFloat()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, (width / density).toInt())
+    }
+
+    override fun onResume() {
+        super.onResume()
+        analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
+            param(FirebaseAnalytics.Param.SCREEN_NAME, "MainActivity")
+            param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
+        }
     }
 }

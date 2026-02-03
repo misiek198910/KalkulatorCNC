@@ -1,7 +1,6 @@
 package com.example.calkulatorcnc.ui.adapters
 
 import android.content.Intent
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,10 +13,10 @@ import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.entity.NewsItem
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.core.net.toUri
 
 class NewsAdapter(private val newsList: List<NewsItem>) :
     RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
-
     class NewsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvDate: TextView = view.findViewById(R.id.tvNewsDate)
         val tvTitle: TextView = view.findViewById(R.id.tvNewsTitle)
@@ -34,15 +33,17 @@ class NewsAdapter(private val newsList: List<NewsItem>) :
 
     override fun onBindViewHolder(holder: NewsViewHolder, position: Int) {
         val news = newsList[position]
+        val context = holder.itemView.context
 
-        // 1. Tytuł i treść
         holder.tvTitle.text = news.title
         holder.tvBody.text = news.content
 
-        // 2. Formatowanie daty (Polski format: np. 28 gru 2025)
+        holder.tvBody.maxLines = Int.MAX_VALUE
+
         if (news.date != null) {
             try {
-                val sdf = SimpleDateFormat("d MMM yyyy", Locale("pl", "PL"))
+                // Locale.getDefault() automatycznie wybierze format pod niemiecki/polski
+                val sdf = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
                 holder.tvDate.text = sdf.format(news.date)
                 holder.tvDate.visibility = View.VISIBLE
             } catch (e: Exception) {
@@ -52,13 +53,16 @@ class NewsAdapter(private val newsList: List<NewsItem>) :
             holder.tvDate.visibility = View.GONE
         }
 
-        // 3. Obsługa przycisku akcji (link zewnętrzny)
+        // 3. Przycisk "Zobacz w sklepie" (Action Link)
         if (!news.actionLink.isNullOrEmpty()) {
             holder.btnAction.visibility = View.VISIBLE
+            // Pobieranie tekstu ze strings.xml (obsłuży "Zobacz w sklepie" i "Im Store ansehen")
+            holder.btnAction.text = context.getString(R.string.show_shop)
+
             holder.btnAction.setOnClickListener {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(news.actionLink))
-                    holder.itemView.context.startActivity(intent)
+                    val intent = Intent(Intent.ACTION_VIEW, news.actionLink.toUri())
+                    context.startActivity(intent)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -70,10 +74,10 @@ class NewsAdapter(private val newsList: List<NewsItem>) :
         // 4. Ładowanie zdjęcia przez Glide
         if (!news.imageUrl.isNullOrEmpty()) {
             holder.imgNews.visibility = View.VISIBLE
-            Glide.with(holder.itemView.context)
+            Glide.with(context)
                 .load(news.imageUrl)
-                .centerCrop() // Dopasowanie zdjęcia do ramki
-                .placeholder(R.drawable.spindle) // Twoja ikona jako placeholder
+                .centerCrop()
+                .placeholder(R.drawable.spindle)
                 .error(android.R.drawable.stat_notify_error)
                 .into(holder.imgNews)
         } else {

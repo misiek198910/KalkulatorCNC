@@ -20,8 +20,8 @@ android {
         applicationId = "kalkulator.cnc"
         minSdk = 27
         targetSdk = 36
-        versionCode = 82
-        versionName = "4.0.0"
+        versionCode = 90
+        versionName = "4.2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -76,6 +76,7 @@ android {
 
     buildFeatures {
         buildConfig = true
+        viewBinding = true
     }
 
     compileOptions {
@@ -97,6 +98,9 @@ dependencies {
     implementation(libs.play.services.ads)
     implementation(libs.user.messaging.platform)
     implementation(libs.bundles.room)
+    implementation(libs.androidx.activity)
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.constraintlayout)
     ksp(libs.room.compiler)
     implementation(libs.bundles.lifecycle)
     implementation(libs.gson)
@@ -107,4 +111,6 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.analytics)
+    implementation(libs.play.app.update)
+    implementation(libs.play.app.update.ktx)
 }
