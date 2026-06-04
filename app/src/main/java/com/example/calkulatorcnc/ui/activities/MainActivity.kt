@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -30,6 +31,12 @@ import com.google.android.play.core.install.model.UpdateAvailability
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
+import com.example.calkulatorcnc.viewModel.AdViewModel
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.play.core.appupdate.AppUpdateOptions
 import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
@@ -45,6 +52,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var appUpdateManager: AppUpdateManager
     private lateinit var updateResultLauncher: ActivityResultLauncher<IntentSenderRequest>
+    private val adViewModel: AdViewModel by viewModels()
+    private var mInterstitialAd: InterstitialAd? = null
+    private var resumeCounter = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,13 +68,20 @@ class MainActivity : AppCompatActivity() {
         checkForNewNews()
         analytics = Firebase.analytics
         updateResultLauncher = registerForActivityResult(
-            ActivityResultContracts.StartIntentSenderForResult()
-        ) { result ->
-            if (result.resultCode != RESULT_OK) {
-                // Tutaj możesz obsłużyć sytuację, gdy użytkownik anulował aktualizację
-                // lub wystąpił błąd. Aktualizacja elastyczna spróbuje ponownie później.
-            }
+            ActivityResultContracts.StartIntentSenderForResult()) { result ->
+            if (result.resultCode != RESULT_OK) { }
         }
+        loadInterstitialAd()
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (mInterstitialAd != null) {
+                    adViewModel.triggerExitAd { showAdAndFinish() }
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
         checkForUpdates()
     }
 
@@ -139,22 +156,27 @@ class MainActivity : AppCompatActivity() {
     private fun setupClickListeners() {
         findViewById<View>(R.id.card_calc).setOnClickListener {
             startActivity(Intent(this, ActivityMilling::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_tools).setOnClickListener {
             startActivity(Intent(this, ActivityTourning::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_fits).setOnClickListener {
             startActivity(Intent(this, ActivityTools::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_other).setOnClickListener {
             startActivity(Intent(this, ActivityTables::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_settings).setOnClickListener {
             startActivity(Intent(this, ActivitySettings::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_notifications).setOnClickListener {
@@ -164,14 +186,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             startActivity(Intent(this, ActivityNews::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_no_ads).setOnClickListener {
             startActivity(Intent(this, ActivitySubscription::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
         findViewById<View>(R.id.card_tolerances).setOnClickListener {
             startActivity(Intent(this, ActivityTolerances::class.java))
+            adViewModel.isInternalNavigation = true
         }
 
     }
@@ -267,19 +292,79 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun loadInterstitialAd() {
+        if (adViewModel.isAdLoading || mInterstitialAd != null) return
+
+        adViewModel.isAdLoading = true
+        val adRequest = AdRequest.Builder().build()
+
+        InterstitialAd.load(this, "ca-app-pub-8612826840770530/1977180358", adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    mInterstitialAd = interstitialAd
+                    adViewModel.isAdLoading = false
+
+                    setupAdCallbacks()
+                }
+
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    mInterstitialAd = null
+                    adViewModel.isAdLoading = false
+                }
+            })
+    }
+
+    private fun setupAdCallbacks() {
+        mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                // Użytkownik zamknął reklamę -> czyścimy i ładujemy nową na zapas!
+                mInterstitialAd = null
+                loadInterstitialAd()
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                mInterstitialAd = null
+                loadInterstitialAd()
+            }
+        }
+    }
+
+    private fun showAdAndFinish() {
+        mInterstitialAd?.let {
+            it.fullScreenContentCallback = object : FullScreenContentCallback() {
+                override fun onAdDismissedFullScreenContent() {
+                    finish() // Zamykamy apkę PO zamknięciu reklamy
+                }
+            }
+            it.show(this)
+        } ?: finish()
+    }
+
+
     override fun onResume() {
         super.onResume()
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, "MainActivity")
             param(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
+        }
 
-            appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
-                if (info.installStatus() == InstallStatus.DOWNLOADED) {
-                    showUpdateCompletedSnackbar()
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { info ->
+            if (info.installStatus() == InstallStatus.DOWNLOADED) {
+                showUpdateCompletedSnackbar()
+            }
+        }
+
+        adViewModel.triggerResumeAd {
+            if (mInterstitialAd != null) {
+                resumeCounter++
+                // Logika "co druga reklama"
+                if (resumeCounter % 2 == 0) {
+                    mInterstitialAd?.show(this)
                 }
             }
         }
     }
+
 
     override fun onDestroy() {
         super.onDestroy()

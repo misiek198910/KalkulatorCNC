@@ -52,6 +52,11 @@ import kotlinx.coroutines.launch
 import kotlin.math.atan
 import kotlin.math.roundToLong
 import androidx.core.view.isNotEmpty
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 enum class TurningResultMode { STANDARD, TIME, VOLUME, ROUGHNESS, TAPER, NONE }
 
@@ -73,6 +78,8 @@ class ActivityTourning : AppCompatActivity() {
     private var adView: AdView? = null
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var toolViewModel: ToolViewModel
+    private var mInterstitialAd: InterstitialAd? = null
+    private var isAdLoading = false
 
     private var vcTextWatcher: TextWatcher? = null
 
@@ -82,6 +89,7 @@ class ActivityTourning : AppCompatActivity() {
         setContentView(R.layout.activity_turning)
 
         createViewAEdgetoEdgeForAds()
+        loadInterstitialAd()
         initUI()
         setupAds()
         setupSpinner()
@@ -161,7 +169,15 @@ class ActivityTourning : AppCompatActivity() {
         findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.milingbutton1).setOnClickListener {
             it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
             hideKeyboard()
-            calculate()
+            val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+
+            if (!isPremium && mInterstitialAd != null) {
+                // POKAZUJEMY REKLAMĘ I OBLICZAMY PO JEJ ZAMKNIĘCIU
+                showInterstitialAndCalculate()
+            } else {
+                // LICZYMY OD RAZU (Premium lub brak załadowanej reklamy)
+                calculate()
+            }
         }
 
         btnClear.setOnClickListener {
@@ -339,7 +355,13 @@ class ActivityTourning : AppCompatActivity() {
                 if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
                     hideKeyboard()
                     clearFocus()
-                    calculate() // Wywołuje Twoją funkcję obliczeń
+                    val isPremium = SubscriptionManager.getInstance(this@ActivityTourning).isPremium.value ?: false
+
+                    if (!isPremium && mInterstitialAd != null) {
+                        showInterstitialAndCalculate() // Teraz wywoła reklamę przed wynikiem
+                    } else {
+                        calculate() // Pokaże wynik od razu (Premium lub brak reklamy)
+                    }
                     true
                 } else false
             }
@@ -897,5 +919,42 @@ class ActivityTourning : AppCompatActivity() {
             dialogView.findViewById<Button>(R.id.btnOk).setOnClickListener { dialog.dismiss() }
             dialog.show()
         }
+    }
+
+    private fun loadInterstitialAd() {
+        if (isAdLoading || mInterstitialAd != null) return
+        isAdLoading = true
+
+        val adRequest = AdRequest.Builder().build()
+        // Twoje ID reklamy: ca-app-pub-8612826840770530/1977180358
+        InterstitialAd.load(this, "ca-app-pub-8612826840770530/1977180358", adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    mInterstitialAd = interstitialAd
+                    isAdLoading = false
+                }
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    mInterstitialAd = null
+                    isAdLoading = false
+                }
+            })
+    }
+
+    private fun showInterstitialAndCalculate() {
+        mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                // Użytkownik zamknął reklamę
+                mInterstitialAd = null
+                loadInterstitialAd() // Ładujemy następną na zapas
+                calculate() // Wyświetlamy wynik po reklamie
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                // Jeśli reklama nie może się wyświetlić, nie blokujemy usera
+                mInterstitialAd = null
+                calculate()
+            }
+        }
+        mInterstitialAd?.show(this)
     }
 }

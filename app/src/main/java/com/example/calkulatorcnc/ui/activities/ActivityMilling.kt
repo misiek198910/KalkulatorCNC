@@ -1,5 +1,6 @@
 package com.example.calkulatorcnc.ui.activities
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -49,6 +50,10 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 import androidx.core.view.isVisible
 import com.example.calkulatorcnc.ui.adapters.MainDropdownAdapter
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.textfield.TextInputLayout
 
 data class CalculationResult(
@@ -75,6 +80,8 @@ class ActivityMilling : AppCompatActivity() {
     private lateinit var analytics: FirebaseAnalytics
     private lateinit var toolViewModel: ToolViewModel
     private var vcTextWatcher: TextWatcher? = null
+    private var mInterstitialAd: InterstitialAd? = null
+    private var isAdLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,6 +89,7 @@ class ActivityMilling : AppCompatActivity() {
         setContentView(R.layout.activity_milling)
 
         createViewAEdgetoEdgeForAds()
+        loadInterstitialAd()
         initUI()
         setupAds()
         setupSpinner()
@@ -157,7 +165,15 @@ class ActivityMilling : AppCompatActivity() {
         findViewById<androidx.appcompat.widget.AppCompatButton>(R.id.milingbutton1).setOnClickListener {
             it.performHapticFeedback(android.view.HapticFeedbackConstants.VIRTUAL_KEY)
             hideKeyboard()
-            calculate()
+
+            // Sprawdzamy subskrypcję przed pokazaniem reklamy
+            val isPremium = SubscriptionManager.getInstance(this).isPremium.value ?: false
+
+            if (!isPremium && mInterstitialAd != null) {
+                showInterstitialAndCalculate()
+            } else {
+                calculate()
+            }
         }
 
         btnClear.setOnClickListener {
@@ -365,7 +381,13 @@ class ActivityMilling : AppCompatActivity() {
                     if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
                         hideKeyboard()
                         clearFocus()
-                        calculate() // Wywołuje Twoją funkcję obliczeń
+                        val isPremium = SubscriptionManager.getInstance(this@ActivityMilling).isPremium.value ?: false
+
+                        if (!isPremium && mInterstitialAd != null) {
+                            showInterstitialAndCalculate() // Teraz wywoła reklamę przed wynikiem
+                        } else {
+                            calculate() // Pokaże wynik od razu (Premium lub brak reklamy)
+                        }
                         true
                     } else false
                 }
@@ -639,6 +661,7 @@ class ActivityMilling : AppCompatActivity() {
         edtPanel.findViewById<View>(R.id.vc_chips_container)?.let { edtPanel.removeView(it) }
     }
 
+    
     private fun observeToolData() {
         lifecycleScope.launch {
             toolViewModel.toolParameters.collect { tool ->
@@ -794,12 +817,8 @@ class ActivityMilling : AppCompatActivity() {
                                 }
                                 val tvDrillHint = TextView(this@ActivityMilling).apply {
                                     id = R.id.tv_drill_hint_text
-                                    text = "${getString(R.string.drill_hint_label)} Ø${
-                                        String.format(
-                                            "%.2f",
-                                            drillSize
-                                        )
-                                    }"
+                                    text = "${getString(R.string.drill_hint_label)} Ø${String.format("%.2f", drillSize)}"
+
                                     setTextColor(Color.parseColor("#FFD740"))
                                     textSize = 14f
                                     setTypeface(null, android.graphics.Typeface.BOLD)
@@ -980,6 +999,41 @@ class ActivityMilling : AppCompatActivity() {
         }
 
         showResultDialog(result)
+    }
+
+    private fun loadInterstitialAd() {
+        if (isAdLoading || mInterstitialAd != null) return
+        isAdLoading = true
+
+        val adRequest = AdRequest.Builder().build()
+        // Użyj swojego ID: ca-app-pub-8612826840770530/1977180358
+        InterstitialAd.load(this, "ca-app-pub-8612826840770530/1977180358", adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    mInterstitialAd = interstitialAd
+                    isAdLoading = false
+                }
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    mInterstitialAd = null
+                    isAdLoading = false
+                }
+            })
+    }
+
+    private fun showInterstitialAndCalculate() {
+        mInterstitialAd?.fullScreenContentCallback = object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                mInterstitialAd = null
+                loadInterstitialAd() // Ładujemy następną na zapas
+                calculate() // Wykonujemy obliczenia PO zamknięciu reklamy
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: com.google.android.gms.ads.AdError) {
+                mInterstitialAd = null
+                calculate() // Jeśli błąd - nie blokujemy użytkownika
+            }
+        }
+        mInterstitialAd?.show(this)
     }
 
     object HardnessConverter {

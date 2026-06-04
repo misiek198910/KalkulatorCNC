@@ -13,12 +13,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.calkulatorcnc.BuildConfig
 import com.example.calkulatorcnc.R
 import com.example.calkulatorcnc.billing.SubscriptionManager
 import com.example.calkulatorcnc.entity.NewsItem
+import com.example.calkulatorcnc.remote.RetrofitClient
 import com.example.calkulatorcnc.ui.adapters.NewsAdapter
 import com.google.android.gms.ads.*
 import com.google.firebase.Firebase
@@ -27,6 +29,7 @@ import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import kotlinx.coroutines.launch
 
 class ActivityNews : AppCompatActivity() {
 
@@ -42,7 +45,7 @@ class ActivityNews : AppCompatActivity() {
 
         setupEdgeToEdge()
         initUI()
-        fetchNewsFromFirebase()
+        fetchNewsFromApi()
         analytics = Firebase.analytics
     }
 
@@ -74,27 +77,33 @@ class ActivityNews : AppCompatActivity() {
         findViewById<FrameLayout>(R.id.adContainer).post { setupAds() }
     }
 
-    private fun fetchNewsFromFirebase() {
+    private fun fetchNewsFromApi() {
         progressBar.visibility = View.VISIBLE
-        FirebaseFirestore.getInstance().collection("news")
-            .whereEqualTo("isVisible", true)
-            .orderBy("date", Query.Direction.DESCENDING)
-            .limit(20)
-            .get()
-            .addOnSuccessListener { documents ->
-                progressBar.visibility = View.GONE
-                val newsList = documents.toObjects(NewsItem::class.java)
 
-                if (newsList.isEmpty()) {
-                    Toast.makeText(this, "Brak nowych wiadomości", Toast.LENGTH_SHORT).show()
-                } else {
-                    recyclerView.adapter = NewsAdapter(newsList)
-                }
-            }
-            .addOnFailureListener { e ->
+        lifecycleScope.launch {
+            try {
+                // Wywołujemy Twój ParishApiService
+                val response = RetrofitClient.instance.getNewsFeed()
+
                 progressBar.visibility = View.GONE
-                Toast.makeText(this, "Błąd: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+
+                if (response.isSuccessful) {
+                    val newsList = response.body() ?: emptyList()
+
+                    if (newsList.isEmpty()) {
+                        Toast.makeText(this@ActivityNews, "Brak nowych wiadomości", Toast.LENGTH_SHORT).show()
+                    } else {
+                        // Pamiętaj o aktualizacji NewsAdapter, aby przyjmował List<NewsResponse>
+                        recyclerView.adapter = NewsAdapter(newsList)
+                    }
+                } else {
+                    Toast.makeText(this@ActivityNews, "Błąd serwera: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                progressBar.visibility = View.GONE
+                Toast.makeText(this@ActivityNews, "Błąd połączenia: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             }
+        }
     }
 
     private fun setupAds() {

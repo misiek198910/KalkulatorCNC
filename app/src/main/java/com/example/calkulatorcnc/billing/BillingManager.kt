@@ -89,7 +89,8 @@ class BillingManager private constructor(context: Context) {
                 var hasPremium = false
                 var token: String? = null
                 purchases.forEach { purchase ->
-                    if (purchase.products.contains(SKU_REMOVE_ADS) && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                    // Sprawdzamy, czy użytkownik posiada produkt roczny (który zawiera wszystkie nasze plany)
+                    if (purchase.products.contains(SKU_REMOVE_ADS_YEAR) && purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
                         hasPremium = true
                         token = purchase.purchaseToken
                         if (!purchase.isAcknowledged) handlePurchase(purchase)
@@ -111,23 +112,22 @@ class BillingManager private constructor(context: Context) {
     fun queryProductDetails() {
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(SKU_REMOVE_ADS)
+                .setProductId(SKU_REMOVE_ADS_YEAR)
                 .setProductType(ProductType.SUBS)
                 .build()
         )
         billingClient.queryProductDetailsAsync(QueryProductDetailsParams.newBuilder().setProductList(productList).build()) { _, details ->
-            if (!details.isNullOrEmpty()) _productDetails.postValue(details[0])
+            if (details.isNotEmpty()) _productDetails.postValue(details[0])
         }
     }
-
-    fun launchPurchaseFlow(activity: Activity, productDetailsToPurchase: ProductDetails) {
-        // 1. Szukamy oferty powiązanej z Twoim nowym planem automatycznym
+    
+    fun launchPurchaseFlow(activity: Activity, productDetailsToPurchase: ProductDetails, basePlanId: String) {
         val offerDetails = productDetailsToPurchase.subscriptionOfferDetails?.find {
-            it.basePlanId == "cnc-premium-auto"
-        } ?: productDetailsToPurchase.subscriptionOfferDetails?.firstOrNull() // Fallback do czegokolwiek, żeby nie zablokować zakupu
+            it.basePlanId == basePlanId
+        }
 
         if (offerDetails == null) {
-            listener?.onPurchaseError("Nie znaleziono ofert subskrypcji.")
+            listener?.onPurchaseError("Nie znaleziono wybranej oferty ($basePlanId).")
             return
         }
 
@@ -135,7 +135,7 @@ class BillingManager private constructor(context: Context) {
             .setProductDetailsParamsList(listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                     .setProductDetails(productDetailsToPurchase)
-                    .setOfferToken(offerDetails.offerToken) // Ten token zawiera informację o trialu!
+                    .setOfferToken(offerDetails.offerToken)
                     .build()
             )).build()
 
@@ -156,24 +156,24 @@ class BillingManager private constructor(context: Context) {
         }
     }
 
-    fun getSubscriptionOfferInfo(context: Context, productDetails: ProductDetails?): String {
-        // Szukamy Twojego nowego planu
-        val offer = productDetails?.subscriptionOfferDetails?.find { it.basePlanId == "cnc-premium-auto" }
-
-        // Szukamy fazy darmowej (Trial)
+    fun getPlanOfferInfo(context: Context, productDetails: ProductDetails?, basePlanId: String): String {
+        val offer = productDetails?.subscriptionOfferDetails?.find { it.basePlanId == basePlanId }
         val trialPhase = offer?.pricingPhases?.pricingPhaseList?.find { it.priceAmountMicros == 0L }
-        // Szukamy fazy płatnej (Cena bazowa)
         val basePhase = offer?.pricingPhases?.pricingPhaseList?.lastOrNull()
 
         return when {
-            trialPhase != null && basePhase != null -> {
-                // "Zacznij 7 dni za darmo, potem [CENA] / rok"
+            basePlanId == BASE_PLAN_YEARLY_TRIAL && trialPhase != null && basePhase != null -> {
                 context.getString(R.string.subs_trial_button, basePhase.formattedPrice)
             }
-            basePhase != null -> {
-                // "Subskrypcja roczna: [CENA]"
+
+            basePlanId == SKU_REMOVE_ADS_MONTH && basePhase != null -> {
+                context.getString(R.string.subs_monthly_button, basePhase.formattedPrice)
+            }
+
+            basePlanId == BASE_PLAN_YEARLY_TRIAL && basePhase != null -> {
                 context.getString(R.string.subs_annual_button, basePhase.formattedPrice)
             }
+
             else -> context.getString(R.string.subs_buy_button)
         }
     }
@@ -183,6 +183,14 @@ class BillingManager private constructor(context: Context) {
         fun getInstance(context: Context): BillingManager = INSTANCE ?: synchronized(this) {
             INSTANCE ?: BillingManager(context).also { INSTANCE = it }
         }
-        const val SKU_REMOVE_ADS = "remove_ads_for_year"
+
+        // Główne ID produktu w Google Play Console
+        const val SKU_REMOVE_ADS_YEAR = "remove_ads_for_year"
+
+        // ID planu miesięcznego (Base Plan ID wewnątrz powyższego produktu)
+        const val SKU_REMOVE_ADS_MONTH = "subscription-month"
+
+        // ID planu rocznego z trialem (Base Plan ID)
+        const val BASE_PLAN_YEARLY_TRIAL = "cnc-premium-auto"
     }
 }

@@ -328,8 +328,10 @@
     <string name="error_only_one_value">Per favore, inserisci un solo valore per la conversione.</string>
     <string name="subs_trial_button">Inizia 7 giorni gratis\npoi %s / anno</string>
     <string name="subs_annual_button">Abbonamento annuale: %s</string>
+    <string name="subs_monthly_button">Abbonamento mensile: %s</string>
     <string name="subs_buy_button">Acquista abbonamento</string>
     <string name="update_downloaded">L\'aggiornamento è stato scaricato.</string>
     <string name="restart_app">RIAVVIA</string>
+    <string name="subs_info">I primi 7 giorni sono completamente gratuiti. Puoi annullare l\'abbonamento in qualsiasi momento tramite le impostazioni di Google Play. Se lo fai prima della fine della settimana, non ci saranno costi.</string>k
 
 </resources>

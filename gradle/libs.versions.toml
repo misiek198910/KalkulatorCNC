@@ -20,6 +20,8 @@ glide = "4.16.0"
 activity = "1.8.0"
 constraintlayout = "2.1.4"
 playAppUpdate = "2.1.0"
+okhttp = "4.12.0"
+retrofit = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,6 +39,11 @@ firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 # Billing
 billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+
+# Retrofit komunikacja z serwerem
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+retrofit-core = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-gson = { group = "com.squareup.retrofit2", name = "converter-gson", version.ref = "retrofit" }
 
 # Room
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
