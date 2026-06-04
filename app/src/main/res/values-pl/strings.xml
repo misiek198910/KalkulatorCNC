@@ -336,8 +336,10 @@
     <string name="error_only_one_value">Proszę wprowadzić tylko jedną wartość do przeliczenia.</string>
     <string name="subs_trial_button">Zacznij 7 dni za darmo\npotem %s / rok</string>
     <string name="subs_annual_button">Subskrypcja roczna: %s</string>
+    <string name="subs_monthly_button">Subskrypcja miesięczna: %s</string>
     <string name="subs_buy_button">Kup subskrypcję</string>
     <string name="update_downloaded">Aktualizacja została pobrana.</string>
     <string name="restart_app">RESTART</string>
+    <string name="subs_info">Pierwsze 7 dni jest całkowicie darmowe. Możesz zrezygnować w dowolnym momencie w ustawieniach Google Play – jeśli zrobisz to przed upływem tygodnia, nie poniesiesz żadnych kosztów.</string>
 
 </resources>

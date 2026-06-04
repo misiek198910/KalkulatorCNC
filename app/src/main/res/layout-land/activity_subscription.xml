@@ -187,27 +187,50 @@
                             tools:text="Aktywna" />
 
                         <Button
-                            android:id="@+id/buy_subscription_button"
+                            android:id="@+id/buy_monthly_button"
                             style="@style/button_style"
                             android:layout_width="match_parent"
-                            android:layout_height="52dp"
-                            android:layout_marginTop="16dp"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="12dp"
                             android:background="@drawable/button_style"
-                            android:text="@string/text_info2"
+                            android:text="@string/subs_annual_button"
                             android:textColor="@color/white"
-                            android:textSize="14sp"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/buy_yearly_button"
+                            style="@style/button_style"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/button_style"
+                            android:text="@string/subs_annual_button"
+                            android:textColor="@color/white"
+                            android:textSize="13sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/restore_purchases_button"
                             style="@style/button_style"
                             android:layout_width="match_parent"
-                            android:layout_height="48dp"
+                            android:layout_height="44dp"
                             android:layout_marginTop="8dp"
                             android:background="@drawable/button_style"
                             android:text="@string/buy_back"
                             android:textColor="@color/white"
-                            android:textSize="13sp" />
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/trial_info_text"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center"
+                            android:text="@string/subs_info"
+                            android:textColor="#9E9E9E"
+                            android:textSize="10sp"
+                            tools:ignore="SmallSp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

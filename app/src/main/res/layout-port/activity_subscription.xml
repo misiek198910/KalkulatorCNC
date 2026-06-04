@@ -171,13 +171,26 @@
                         tools:text="NIEAKTYWNA" />
 
                     <Button
-                        android:id="@+id/buy_subscription_button"
+                        android:id="@+id/buy_monthly_button"
                         style="@style/button_style"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:layout_marginTop="32dp"
                         android:background="@drawable/button_style"
-                        android:text="@string/text_info2"
+                        android:text="@string/subs_monthly_button"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        tools:ignore="VisualLintButtonSize" />
+
+                    <Button
+                        android:id="@+id/buy_yearly_button"
+                        style="@style/button_style"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/button_style"
+                        android:text="@string/subs_annual_button"
                         android:textColor="@color/white"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -194,6 +207,16 @@
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         tools:ignore="VisualLintButtonSize" />
+
+                    <TextView
+                        android:id="@+id/trial_info_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:gravity="center"
+                        android:text="@string/subs_info"
+                        android:textColor="#9E9E9E"
+                        android:textSize="12sp" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

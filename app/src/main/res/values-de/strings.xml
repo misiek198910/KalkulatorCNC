@@ -320,8 +320,10 @@
     <string name="error_only_one_value">Bitte geben Sie nur einen Wert zur Umwertung ein.</string>
     <string name="subs_trial_button">7 Tage kostenlos testen\ndann %s / Jahr</string>
     <string name="subs_annual_button">Jahresabonnement: %s</string>
+    <string name="subs_monthly_button">Monatliches Abonnement: %s</string>
     <string name="subs_buy_button">Abonnement kaufen</string>
     <string name="update_downloaded">Update wurde heruntergeladen.</string>
     <string name="restart_app">NEUSTART</string>
+    <string name="subs_info">Die ersten 7 Tage sind komplett kostenlos. Sie können jederzeit in Ihren Google Play-Einstellungen kündigen – wenn Sie dies vor Ablauf der Woche tun, fallen keine Kosten an.</string>
 
 </resources>

@@ -330,8 +330,10 @@
     <string name="error_only_one_value">Por favor, introduzca solo un valor para la conversión.</string>
     <string name="subs_trial_button">Prueba 7 días gratis\nluego %s / año</string>
     <string name="subs_annual_button">Suscripción anual: %s</string>
+    <string name="subs_monthly_button">Suscripción mensual: %s</string>
     <string name="subs_buy_button">Comprar suscripción</string>
     <string name="update_downloaded">La actualización ha sido descargada.</string>
     <string name="restart_app">REINICIAR</string>
+    <string name="subs_info">Los primeros 7 días son completamente gratis. Puedes cancelar en cualquier momento desde la configuración de Google Play. Si lo haces antes de que termine la semana, no tendrás ningún coste.</string>
 
 </resources>

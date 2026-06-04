@@ -10,13 +10,14 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.calkulatorcnc.R
-import com.example.calkulatorcnc.entity.NewsItem
+import com.example.calkulatorcnc.remote.NewsResponse // Używamy Twojego nowego modelu
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.core.net.toUri
 
-class NewsAdapter(private val newsList: List<NewsItem>) :
+class NewsAdapter(private val newsList: List<NewsResponse>) :
     RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
+
     class NewsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvDate: TextView = view.findViewById(R.id.tvNewsDate)
         val tvTitle: TextView = view.findViewById(R.id.tvNewsTitle)
@@ -35,33 +36,39 @@ class NewsAdapter(private val newsList: List<NewsItem>) :
         val news = newsList[position]
         val context = holder.itemView.context
 
+        // 1. Mapowanie podstawowych danych
         holder.tvTitle.text = news.title
         holder.tvBody.text = news.content
-
         holder.tvBody.maxLines = Int.MAX_VALUE
 
-        if (news.date != null) {
+        // 2. Obsługa daty (String z API -> Format lokalny)
+        if (!news.publish_date.isNullOrEmpty()) {
             try {
-                // Locale.getDefault() automatycznie wybierze format pod niemiecki/polski
-                val sdf = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
-                holder.tvDate.text = sdf.format(news.date)
-                holder.tvDate.visibility = View.VISIBLE
+                // Zakładamy, że serwer zwraca format "yyyy-MM-dd HH:mm:ss"
+                val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
+                val formatter = SimpleDateFormat("d MMM yyyy", Locale.getDefault())
+                val date = parser.parse(news.publish_date)
+                if (date != null) {
+                    holder.tvDate.text = formatter.format(date)
+                    holder.tvDate.visibility = View.VISIBLE
+                }
             } catch (e: Exception) {
-                holder.tvDate.visibility = View.GONE
+                // Jeśli parsowanie zawiedzie, wyświetlamy surowy tekst lub ukrywamy
+                holder.tvDate.text = news.publish_date
+                holder.tvDate.visibility = View.VISIBLE
             }
         } else {
             holder.tvDate.visibility = View.GONE
         }
 
-        // 3. Przycisk "Zobacz w sklepie" (Action Link)
-        if (!news.actionLink.isNullOrEmpty()) {
+        // 3. Przycisk akcji (Action Link)
+        if (!news.action_link.isNullOrEmpty()) {
             holder.btnAction.visibility = View.VISIBLE
-            // Pobieranie tekstu ze strings.xml (obsłuży "Zobacz w sklepie" i "Im Store ansehen")
             holder.btnAction.text = context.getString(R.string.show_shop)
 
             holder.btnAction.setOnClickListener {
                 try {
-                    val intent = Intent(Intent.ACTION_VIEW, news.actionLink.toUri())
+                    val intent = Intent(Intent.ACTION_VIEW, news.action_link.toUri())
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -71,13 +78,13 @@ class NewsAdapter(private val newsList: List<NewsItem>) :
             holder.btnAction.visibility = View.GONE
         }
 
-        // 4. Ładowanie zdjęcia przez Glide
-        if (!news.imageUrl.isNullOrEmpty()) {
+        // 4. Ładowanie zdjęcia przez Glide (image_url)
+        if (!news.image_url.isNullOrEmpty()) {
             holder.imgNews.visibility = View.VISIBLE
             Glide.with(context)
-                .load(news.imageUrl)
+                .load(news.image_url)
                 .centerCrop()
-                .placeholder(R.drawable.spindle)
+                .placeholder(R.drawable.spindle) // Twój placeholder
                 .error(android.R.drawable.stat_notify_error)
                 .into(holder.imgNews)
         } else {

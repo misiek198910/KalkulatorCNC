@@ -21,12 +21,19 @@ import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.analytics
 import com.google.firebase.analytics.logEvent
+import androidx.core.graphics.toColorInt
+import androidx.core.net.toUri
 
 class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerListener {
 
     private var billingManager: BillingManager? = null
     private lateinit var statusTextView: TextView
-    private lateinit var buyButton: Button
+
+    // NOWE PRZYCISKI
+    private lateinit var buyMonthlyButton: Button
+    private lateinit var buyYearlyButton: Button
+    private lateinit var trialInfoText: TextView
+
     private lateinit var restoreButton: Button
     private lateinit var adContainerLayout: FrameLayout
     private lateinit var adContainer: FrameLayout
@@ -47,36 +54,44 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     private fun createViewAEdgetoEdgeForAds() {
         val mainRoot = findViewById<View>(R.id.main)
         val customHeader = findViewById<View>(R.id.customHeader)
-        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout) // Zmieniamy na Layout
+        val adLayout = findViewById<FrameLayout>(R.id.adContainerLayout)
 
         ViewCompat.setOnApplyWindowInsetsListener(mainRoot) { _, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-
             mainRoot.setPadding(0, 0, 0, 0)
             customHeader?.updatePadding(top = systemBars.top)
 
-            // KLUCZ: Margines ustawiamy na CAŁY kontener reklamy (rodzica)
-            adContainerLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            adLayout?.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 bottomMargin = systemBars.bottom
                 leftMargin = systemBars.left
                 rightMargin = systemBars.right
             }
-
             insets
         }
     }
 
     private fun initUI() {
         statusTextView = findViewById(R.id.subscription_status_text)
-        buyButton = findViewById(R.id.buy_subscription_button)
+
+        // Inicjalizacja nowych elementów z XML
+        buyMonthlyButton = findViewById(R.id.buy_monthly_button)
+        buyYearlyButton = findViewById(R.id.buy_yearly_button)
+        trialInfoText = findViewById(R.id.trial_info_text)
+
         restoreButton = findViewById(R.id.restore_purchases_button)
         adContainerLayout = findViewById(R.id.adContainerLayout)
         adContainer = findViewById(R.id.adContainer)
 
-        // Obsługa nowego przycisku powrotu w customHeader
         findViewById<ImageButton>(R.id.button_back).setOnClickListener { finish() }
 
-        buyButton.setOnClickListener { handleBuyButtonClick() }
+        // Click listenery dla obu planów
+        buyMonthlyButton.setOnClickListener {
+            handleBuyButtonClick(BillingManager.SKU_REMOVE_ADS_MONTH)
+        }
+
+        buyYearlyButton.setOnClickListener {
+            handleBuyButtonClick(BillingManager.BASE_PLAN_YEARLY_TRIAL)
+        }
 
         restoreButton.setOnClickListener {
             billingManager?.queryPurchasesAsync()
@@ -97,32 +112,59 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
             val isPremium = billingManager?.isPremium?.value ?: false
 
             if (!isPremium && details != null) {
-                // KLUCZOWA ZMIANA: Korzystamy z nowej funkcji managera
-                // Funkcja sama sprawdzi czy jest trial i zwróci odpowiedni tekst
-                val offerInfo = billingManager?.getSubscriptionOfferInfo(this, details)
+                // Pobieramy sformatowane ceny z managera dla obu planów
+                buyMonthlyButton.text = billingManager?.getPlanOfferInfo(this, details, BillingManager.SKU_REMOVE_ADS_MONTH)
+                buyYearlyButton.text = billingManager?.getPlanOfferInfo(this, details, BillingManager.BASE_PLAN_YEARLY_TRIAL)
 
-                buyButton.text = offerInfo
-                buyButton.isEnabled = true
+                buyMonthlyButton.isEnabled = true
+                buyYearlyButton.isEnabled = true
+                buyYearlyButton.visibility = View.VISIBLE
+                trialInfoText.visibility = View.VISIBLE
             } else if (isPremium) {
-                buyButton.text = getString(R.string.settings_subs)
-                buyButton.isEnabled = true
+                // Jeśli premium jest aktywne, zostawiamy jeden przycisk do zarządzania
+                buyMonthlyButton.text = getString(R.string.settings_subs)
+                buyMonthlyButton.isEnabled = true
+                buyYearlyButton.visibility = View.GONE
+                trialInfoText.visibility = View.GONE
             } else {
-                buyButton.isEnabled = false
-                buyButton.text = getString(R.string.load_data)
+                buyMonthlyButton.isEnabled = false
+                buyYearlyButton.isEnabled = false
+                buyMonthlyButton.text = getString(R.string.load_data)
+                buyYearlyButton.text = getString(R.string.load_data)
             }
         }
     }
+
+    private fun handleBuyButtonClick(basePlanId: String) {
+        val isPremium = billingManager?.isPremium?.value ?: false
+
+        if (isPremium) {
+            // Przekierowanie do Google Play w celu zarządzania
+            val url = "https://play.google.com/store/account/subscriptions?package=$packageName"
+            startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
+        } else {
+            val details = billingManager?.productDetails?.value
+            if (details != null) {
+                // Wywołujemy zakup dla konkretnego planu
+                billingManager?.launchPurchaseFlow(this, details, basePlanId)
+            } else {
+                Toast.makeText(this, getString(R.string.load_data), Toast.LENGTH_SHORT).show()
+                billingManager?.queryProductDetails()
+            }
+        }
+    }
+
     private fun updateUI(hasSubscription: Boolean) {
         if (hasSubscription) {
             statusTextView.text = getString(R.string.subs_active)
-            // Jasny zielony, dobrze widoczny na ciemnym tle
-            statusTextView.setTextColor(android.graphics.Color.parseColor("#4CAF50"))
+            statusTextView.setTextColor("#4CAF50".toColorInt())
         } else {
             statusTextView.text = getString(R.string.subs_deactive)
-            // Jasny czerwony/koralowy
-            statusTextView.setTextColor(android.graphics.Color.parseColor("#FF5252"))
+            statusTextView.setTextColor("#FF5252".toColorInt())
         }
     }
+
+    // --- Reszta metod (handleAds, setupAds, onPurchaseAcknowledged itd.) pozostaje bez zmian ---
 
     private fun handleAds(isPremium: Boolean) {
         if (isPremium) {
@@ -132,54 +174,36 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
             adContainerLayout.visibility = View.GONE
         } else {
             adContainerLayout.visibility = View.VISIBLE
-            // Używamy post, aby upewnić się, że szerokość kontenera jest już obliczona
-            adContainer.post {
-                if (adView == null) {
-                    setupAds()
-                }
-            }
+            adContainer.post { if (adView == null) setupAds() }
         }
     }
 
     private fun setupAds() {
         val adBannerId = BuildConfig.ADMOB_BANNER_ID
-
-        // 1. Zabezpieczenie przed brakiem ID
         if (adBannerId == "BRAK_ID" || adBannerId.isEmpty()) {
-            findViewById<View>(R.id.adContainerLayout)?.visibility = View.GONE
+            adContainerLayout.visibility = View.GONE
             return
         }
 
-        val adContainerLayout = findViewById<FrameLayout>(R.id.adContainerLayout) ?: return
-        val adContainer = findViewById<FrameLayout>(R.id.adContainer) ?: return
-
-        // 2. Obserwacja stanu subskrypcji
         SubscriptionManager.getInstance(this).isPremium.observe(this) { isPremium ->
             if (isPremium) {
-                // Logika PREMIUM: czyścimy i usuwamy wszystko
                 adContainerLayout.visibility = View.GONE
                 adContainer.removeAllViews()
                 adView?.destroy()
                 adView = null
             } else {
-                // Logika FREE: sprawdzamy wysokość ekranu
                 if (resources.configuration.screenHeightDp < 400) {
                     adContainerLayout.visibility = View.GONE
                 } else {
                     adContainerLayout.visibility = View.VISIBLE
-
-                    // Ładujemy reklamę tylko jeśli jeszcze nie istnieje
                     if (adView == null) {
-                        // Wywołujemy dopasowaną funkcję rozmiaru
                         val adSize = getAdSize(adContainer)
-
                         val newAdView = AdView(this).apply {
                             setAdUnitId(adBannerId)
                             setAdSize(adSize)
                         }
-
                         adView = newAdView
-                        adContainer.removeAllViews() // Czyścimy na wypadek duplikacji
+                        adContainer.removeAllViews()
                         adContainer.addView(newAdView)
                         newAdView.loadAd(AdRequest.Builder().build())
                     }
@@ -191,29 +215,9 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     private fun getAdSize(adContainer: FrameLayout): AdSize {
         val displayMetrics = resources.displayMetrics
         var adWidthPixels = adContainer.width.toFloat()
-        if (adWidthPixels == 0f) {
-            adWidthPixels = displayMetrics.widthPixels.toFloat()
-        }
-        val density = displayMetrics.density
-        val adWidth = (adWidthPixels / density).toInt()
+        if (adWidthPixels == 0f) adWidthPixels = displayMetrics.widthPixels.toFloat()
+        val adWidth = (adWidthPixels / displayMetrics.density).toInt()
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
-    }
-
-    private fun handleBuyButtonClick() {
-        val isPremium = billingManager?.isPremium?.value ?: false
-
-        if (isPremium) {
-            val url = "https://play.google.com/store/account/subscriptions?package=$packageName"
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-        } else {
-            val details = billingManager?.productDetails?.value
-            if (details != null) {
-                billingManager?.launchPurchaseFlow(this, details)
-            } else {
-                Toast.makeText(this, getString(R.string.load_data), Toast.LENGTH_SHORT).show()
-                billingManager?.queryProductDetails()
-            }
-        }
     }
 
     override fun onPurchaseAcknowledged() {
@@ -224,21 +228,17 @@ class ActivitySubscription : AppCompatActivity(), BillingManager.BillingManagerL
     }
 
     override fun onPurchaseError(error: String?) {
-        runOnUiThread {
-            Toast.makeText(this, "Błąd: $error", Toast.LENGTH_SHORT).show()
-        }
+        runOnUiThread { Toast.makeText(this, "Błąd: $error", Toast.LENGTH_SHORT).show() }
     }
-    private fun dpToPx(dp: Int): Int = (dp * resources.displayMetrics.density).toInt()
 
     override fun onPause() { adView?.pause(); super.onPause() }
-
     override fun onResume() {
         super.onResume(); adView?.resume()
         analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW) {
             param(FirebaseAnalytics.Param.SCREEN_NAME, "Subskrypcje")
             param(FirebaseAnalytics.Param.SCREEN_CLASS, "ActivitySubscription")
-        }}
-
+        }
+    }
     override fun onDestroy() {
         adView?.destroy()
         billingManager?.setListener(null)

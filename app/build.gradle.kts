@@ -20,8 +20,8 @@ android {
         applicationId = "kalkulator.cnc"
         minSdk = 27
         targetSdk = 36
-        versionCode = 90
-        versionName = "4.2.4"
+        versionCode = 93
+        versionName = "4.2.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -42,8 +42,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            isMinifyEnabled = false
+            //isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -113,4 +113,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.play.app.update)
     implementation(libs.play.app.update.ktx)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
 }

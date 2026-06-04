@@ -305,7 +305,9 @@
     <string name="error_only_one_value">Veuillez saisir une seule valeur pour la conversion.</string>
     <string name="subs_trial_button">7 jours d\'essai gratuit\npuis %s / an</string>
     <string name="subs_annual_button">Abonnement annuel : %s</string>
+    <string name="subs_monthly_button">Abonnement mensuel : %s</string>
     <string name="subs_buy_button">Acheter un abonnement</string>
     <string name="update_downloaded">La mise à jour a été téléchargée.</string>
     <string name="restart_app">REDÉMARRER</string>
+    <string name="subs_info">Les 7 premiers jours sont entièrement gratuits. Vous pouvez annuler à tout moment dans les paramètres de votre compte Google Play si vous le faites avant la fin de la semaine, il n’y aura aucun frais.</string>
 </resources>
